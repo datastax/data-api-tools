@@ -34,7 +34,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 ///
 /// Centralized logging utility that handles console output with optional loading spinners and automatic log file generation.
 ///
-/// Log messages are written directly to `.docs_tests_temp/logs/<timestamp>.astra.log` asynchronously via a single-threaded executor.
+/// Log messages are written directly to `.dh_temp/logs/<timestamp>.astra.log` asynchronously via a single-threaded executor.
 /// Keeps only the 10 most recent log files.
 ///
 /// Supports:

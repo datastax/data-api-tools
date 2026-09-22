@@ -1,7 +1,7 @@
 package com.dtsx.docs.core.runner.tests.reporter;
 
 import com.dtsx.docs.core.planner.fixtures.JSFixture;
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.runner.tests.results.TestResults;
 import com.dtsx.docs.core.runner.tests.results.TestRootResults;
 import org.jetbrains.annotations.Nullable;

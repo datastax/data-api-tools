@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.test;
+package com.dtsx.docs.commands.docs.test;
 
 import com.dtsx.docs.config.ArgUtils;
 import com.dtsx.docs.config.ctx.BaseCtx;

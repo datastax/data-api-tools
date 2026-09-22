@@ -1,7 +1,7 @@
 package com.dtsx.docs.core.runner.tests.snapshots.sources.schema.definitions;
 
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.fixtures.FixtureMetadata;
 import com.dtsx.docs.core.planner.meta.snapshot.meta.TableIndexDefinitionSourceMeta;
 import com.dtsx.docs.core.runner.RunException;

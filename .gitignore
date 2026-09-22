@@ -43,10 +43,10 @@ bin/
 .DS_Store
 
 /tmp
-/.docs_tests_temp
+/.dh_temp
 /.approval_tests_temp
 node_modules
 /.env*
-!/.env.example
+!/.env.*.example
 /.bob
 dist

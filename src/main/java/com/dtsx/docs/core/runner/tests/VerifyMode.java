@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.runner.tests;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.runner.RunException;
 import com.dtsx.docs.core.runner.tests.strategies.test.CompilesTestStrategy;
 import org.approvaltests.core.Options;

@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.runner.scripts;
 
-import com.dtsx.docs.commands.run.RunCtx;
+import com.dtsx.docs.commands.docs.run.RunCtx;
 import com.dtsx.docs.core.runner.ExecutionEnvironment;
 import com.dtsx.docs.core.runner.ExecutionEnvironment.TestFileModifiers;
 import com.dtsx.docs.core.runner.PlaceholderResolver;

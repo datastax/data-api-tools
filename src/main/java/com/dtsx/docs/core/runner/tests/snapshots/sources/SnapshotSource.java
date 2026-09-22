@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.runner.tests.snapshots.sources;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.PlanException;
 import com.dtsx.docs.core.planner.fixtures.FixtureMetadata;
 import com.dtsx.docs.core.runner.PlaceholderVars;

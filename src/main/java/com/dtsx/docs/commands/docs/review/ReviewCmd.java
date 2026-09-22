@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.review;
+package com.dtsx.docs.commands.docs.review;
 
 import com.dtsx.docs.commands.BaseCmd;
 import com.dtsx.docs.core.runner.RunException;

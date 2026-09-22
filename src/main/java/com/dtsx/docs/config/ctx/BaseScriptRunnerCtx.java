@@ -42,7 +42,7 @@ public abstract class BaseScriptRunnerCtx extends BaseCtx {
 
     /// Set by `--clean` flag or `CLEAN` env var (default: false).
     ///
-    /// When true, deletes `.docs_tests_temp/` after all tests complete.
+    /// When true, deletes `.dh_temp/` after all tests complete.
     private final boolean clean;
     /// Set by `--bail` flag or `BAIL` env var (default: false).
     ///
@@ -52,7 +52,7 @@ public abstract class BaseScriptRunnerCtx extends BaseCtx {
     /// Returns `resources/environments/<language>/` containing the base project structure.
     ///
     /// For example, `typescript/` contains `package.json`, `java/` contains `build.gradle`.
-    /// These are copied to `.docs_tests_temp/execution_environments/<language>/` at runtime.
+    /// These are copied to `.dh_temp/execution_environments/<language>/` at runtime.
     public Path executionEnvironmentTemplate(ClientLanguage lang) {
         return execEnvTemplatesFolder.resolve(lang.name().toLowerCase());
     }

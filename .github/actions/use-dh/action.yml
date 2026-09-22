@@ -209,4 +209,4 @@ runs:
       shell: bash
       run: |
         set -x
-        cat astra-client-docs-tests/.docs_tests_temp/logs/* || echo "No logs found"
+        cat astra-client-docs-tests/.dh_temp/logs/* || echo "No logs found"

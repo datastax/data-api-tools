@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 ///
 /// Example structure:
 /// ```text
-/// .docs_tests_temp/execution_environments/
+/// .dh_temp/execution_environments/
 ///   typescript/
 ///     package.json
 ///     node_modules/
@@ -136,7 +136,7 @@ public class ExecutionEnvironment {
     /// Internal builder for setting up execution environments.
     ///
     /// Setup process:
-    /// 1. Creates root folder at `.docs_tests_temp/execution_environments/`
+    /// 1. Creates root folder at `.dh_temp/execution_environments/`
     /// 2. Installs JavaScript dependencies (for fixtures)
     ///    - Creating `package.json` if necessary
     /// 3. For each client language:

@@ -20,7 +20,7 @@ import static com.dtsx.docs.HelperCli.CLI_DIR;
 public abstract class BaseCtx {
     protected CommandLine cmd;
 
-    /// Always `.docs_tests_temp/` - contains execution environments and intermediate files.
+    /// Always `.dh_temp/` - contains execution environments and intermediate files.
     ///
     /// Deleted on startup if `--clean` is set, and optionally deleted after tests complete.
     private final Path tmpFolder;
@@ -33,7 +33,7 @@ public abstract class BaseCtx {
 
     public BaseCtx(BaseArgs<?> args, CommandSpec spec) {
         this.cmd = spec.commandLine();
-        this.tmpFolder = CLI_DIR.resolve(".docs_tests_temp");
+        this.tmpFolder = CLI_DIR.resolve(".dh_temp");
         this.commandOverrides = mkCommandOverrides(args);
     }
 

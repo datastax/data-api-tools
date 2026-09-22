@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.planner.fixtures;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.TestRoot;
 import com.dtsx.docs.core.planner.fixtures.BaseFixturePool.FixtureIndex;
 import com.dtsx.docs.core.planner.meta.snapshot.SnapshotTestMetaRep;

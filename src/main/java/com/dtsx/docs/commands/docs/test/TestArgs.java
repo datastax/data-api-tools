@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.test;
+package com.dtsx.docs.commands.docs.test;
 
 import com.dtsx.docs.config.args.BaseScriptRunnerArgs;
 import com.dtsx.docs.core.runner.drivers.ClientDriver;

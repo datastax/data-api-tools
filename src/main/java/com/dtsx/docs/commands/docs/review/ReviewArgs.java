@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.review;
+package com.dtsx.docs.commands.docs.review;
 
 import com.dtsx.docs.config.args.BaseArgs;
 import com.dtsx.docs.config.args.mixins.ExamplesFolderMixin;

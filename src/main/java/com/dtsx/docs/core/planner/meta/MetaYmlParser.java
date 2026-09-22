@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.planner.meta;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.PlanException;
 import com.dtsx.docs.core.planner.meta.compiles.CompilesTestMeta;
 import com.dtsx.docs.core.planner.meta.compiles.CompilesTestMetaRep;

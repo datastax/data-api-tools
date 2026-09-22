@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.run;
+package com.dtsx.docs.commands.docs.run;
 
 import com.dtsx.docs.commands.BaseCmd;
 import com.dtsx.docs.core.runner.scripts.ScriptRunner;

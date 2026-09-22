@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.docgen.table_errors;
+package com.dtsx.docs.commands.docs.gen.table_errors;
 
 import com.dtsx.docs.config.ctx.BaseCtx;
 import lombok.Getter;

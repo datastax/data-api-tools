@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.runner.tests.reporter;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Function;

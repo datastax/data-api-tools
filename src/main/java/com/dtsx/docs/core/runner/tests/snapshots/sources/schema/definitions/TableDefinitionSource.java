@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.runner.tests.snapshots.sources.schema.definitions;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.meta.snapshot.meta.WithNameAndKeyspace;
 import com.dtsx.docs.core.runner.Placeholders;
 import com.dtsx.docs.lib.DataAPIUtils;

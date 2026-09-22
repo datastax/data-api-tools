@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.run;
+package com.dtsx.docs.commands.docs.run;
 
 import com.dtsx.docs.config.ctx.BaseCtx;
 import com.dtsx.docs.config.ctx.BaseScriptRunnerCtx;

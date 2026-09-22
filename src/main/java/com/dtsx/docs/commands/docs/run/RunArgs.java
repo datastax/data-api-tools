@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.run;
+package com.dtsx.docs.commands.docs.run;
 
 import com.dtsx.docs.config.args.BaseScriptRunnerArgs;
 import picocli.CommandLine.Model.CommandSpec;

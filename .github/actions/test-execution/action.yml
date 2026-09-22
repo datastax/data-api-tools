@@ -52,4 +52,4 @@ runs:
         setup-languages: ${{ inputs.clients }},typescript # always need typescript for execution tests
         setup-jq: true
         args: |
-          test ${{ inputs.clients }} ${{ inputs.args }}
+          docs test ${{ inputs.clients }} ${{ inputs.args }}

@@ -3,7 +3,7 @@ package com.dtsx.docs.core.runner.tests.snapshots.sources.schema.definitions;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.tables.commands.options.ListTypesOptions;
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.fixtures.FixtureMetadata;
 import com.dtsx.docs.core.planner.meta.snapshot.meta.UdtDefinitionSourceMeta;
 import com.dtsx.docs.core.runner.drivers.ClientDriver;

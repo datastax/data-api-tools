@@ -2,7 +2,7 @@ package com.dtsx.docs.core.runner.tests.snapshots.sources.records;
 
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.meta.snapshot.meta.RecordSourceMeta.RowsSourceMeta;
 import com.dtsx.docs.core.runner.Placeholders;
 import com.dtsx.docs.lib.DataAPIUtils;

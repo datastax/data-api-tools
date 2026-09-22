@@ -1,4 +1,4 @@
-package com.dtsx.docs.commands.test;
+package com.dtsx.docs.commands.docs.test;
 
 import com.dtsx.docs.commands.BaseCmd;
 import com.dtsx.docs.lib.CliLogger;

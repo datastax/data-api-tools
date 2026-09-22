@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.planner.meta;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.runner.drivers.ClientLanguage;
 import com.dtsx.docs.lib.JacksonUtils;
 import lombok.AccessLevel;

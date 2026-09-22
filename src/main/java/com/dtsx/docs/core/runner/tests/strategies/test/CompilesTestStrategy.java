@@ -1,6 +1,6 @@
 package com.dtsx.docs.core.runner.tests.strategies.test;
 
-import com.dtsx.docs.commands.test.TestCtx;
+import com.dtsx.docs.commands.docs.test.TestCtx;
 import com.dtsx.docs.core.planner.TestRoot;
 import com.dtsx.docs.core.planner.fixtures.BaseFixturePool;
 import com.dtsx.docs.core.planner.meta.compiles.CompilesTestMeta;

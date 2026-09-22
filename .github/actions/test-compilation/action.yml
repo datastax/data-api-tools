@@ -49,4 +49,4 @@ runs:
         allow-failures: ${{ inputs.allow-failures }}
         setup-languages: ${{ inputs.clients }}
         args: |
-          test -m compile_only ${{ inputs.clients }} ${{ inputs.args }}
+          docs test -m compile_only ${{ inputs.clients }} ${{ inputs.args }}

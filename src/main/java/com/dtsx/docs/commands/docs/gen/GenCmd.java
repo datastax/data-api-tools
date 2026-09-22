@@ -1,19 +1,19 @@
-package com.dtsx.docs.commands.docgen;
+package com.dtsx.docs.commands.docs.gen;
 
-import com.dtsx.docs.commands.docgen.table_errors.TableErrorsCmd;
+import com.dtsx.docs.commands.docs.gen.table_errors.TableErrorsCmd;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Spec;
 
 @Command(
-    name = "docgen",
+    name = "gen",
     description = "Documentation generation commands",
     mixinStandardHelpOptions = true,
     subcommands = {
         TableErrorsCmd.class
     }
 )
-public class DocgenCmd implements Runnable {
+public class GenCmd implements Runnable {
     @Spec
     private CommandSpec spec;
 
