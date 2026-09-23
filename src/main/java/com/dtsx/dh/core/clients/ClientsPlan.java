@@ -11,8 +11,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/// The fully-resolved plan for a `dh clients test` run, built once up front from `ctx` so that
-/// what gets printed and what gets executed can never drift apart.
+/// The fully-resolved plan for a `dh clients test` run, built once from `ctx` after each selected
+/// language's repo has been prepared, so what gets printed and what gets executed can never drift
+/// apart.
 public class ClientsPlan {
     /// One selected language's resolved plan: its suite, the repo spec it was resolved from, the
     /// directory its repo lives (or will live) in, the exact invocation that'll run it, and whether
@@ -26,14 +27,13 @@ public class ClientsPlan {
     }
 
     public static ClientsPlan build(ClientsTestCtx ctx) {
-        val connInfo = ctx.connectionInfo();
         val entries = new LinkedHashMap<ClientLanguage, Entry>();
 
         for (val lang : ctx.languages()) {
             val suite = ctx.suite(lang);
             val repoSpec = ctx.repoSpec(lang);
             val repoDir = resolveRepoDir(ctx, lang, repoSpec);
-            val invocation = suite.invocation(ctx, repoDir, connInfo, ctx.toggles(), ctx.credentials());
+            val invocation = suite.invocation(ctx, repoDir);
 
             entries.put(lang, new Entry(suite, repoSpec, repoDir, invocation, suite.needsWipe()));
         }
@@ -49,9 +49,12 @@ public class ClientsPlan {
         return entries.get(lang);
     }
 
-    private static Path resolveRepoDir(ClientsTestCtx ctx, ClientLanguage lang, ClientArtifactSpec spec) {
-        if (spec instanceof LocalPath localPath) {
-            return localPath.path().toAbsolutePath().normalize();
+    /// Resolves the directory `lang`'s repo lives (or will live) in: the local path as-is for a
+    /// [LocalPath] spec, otherwise the managed clone directory under `ctx`'s tmp folder. Shared by
+    /// [#build] and repo preparation so both agree on where a given language's repo sits.
+    public static Path resolveRepoDir(ClientsTestCtx ctx, ClientLanguage lang, ClientArtifactSpec spec) {
+        if (spec instanceof LocalPath(var path)) {
+            return path.toAbsolutePath().normalize();
         }
 
         return ctx.tmpFolder().resolve("client_repos").resolve(lang.name().toLowerCase());

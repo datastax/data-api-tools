@@ -1,15 +1,16 @@
 package com.dtsx.dh.core.clients;
 
+import com.dtsx.dh.commands.clients.test.ClientsTestCtx;
 import com.dtsx.dh.config.ConnectionInfo;
 import com.dtsx.dh.config.ctx.BaseCtx;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
-import com.dtsx.dh.lib.ExternalPrograms.RunResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedMap;
 import java.util.function.Function;
 
 /// A pluggable suite for cloning a client's own repo and running its own integration test harness
@@ -34,21 +35,27 @@ public interface ClientSuite {
     /// Whether this suite needs its target keyspaces wiped of content before it runs.
     boolean needsWipe();
 
+    /// Whether this suite needs [SuiteCredentials#rerankingKey] resolved when reranking is on and
+    /// the target is HCD, where there's no Astra-token fallback.
+    default boolean needsRerankingKey() {
+        return false;
+    }
+
     /// Installs dependencies and otherwise prepares `repoDir` for [#invocation].
-    void setup(BaseCtx ctx, Path repoDir);
+    void setup(ClientsTestCtx ctx, Path repoDir);
 
     /// Builds the exact invocation this suite runs: its working directory, its argv, and the
     /// environment variables it needs. Secrets go in `env` only, never in `cmd`.
     ///
     /// The argv must start from the [ExternalProgram#cmd] of the runner resolved off `ctx`, so that
     /// `-C`/`<NAME>_COMMAND` overrides reach the suite itself.
-    Invocation invocation(BaseCtx ctx, Path repoDir, ConnectionInfo connectionInfo, ClientToggles toggles, ProviderCredentials credentials);
-
-    /// Whether a finished run counts as a pass. Most suites can just check the exit code; go's
-    /// harness exits 0 even when zero tests ran, so its suite overrides this.
-    default boolean isSuccess(RunResult result) {
-        return result.ok();
+    default Invocation invocation(ClientsTestCtx ctx, Path repoDir) {
+        return new Invocation(repoDir, buildCmd(ctx), buildEnv(ctx, ctx.connectionInfo()));
     }
 
     record Invocation(Path cwd, List<String> cmd, Map<String, String> env) {}
+
+    List<String> buildCmd(ClientsTestCtx ctx);
+
+    SequencedMap<String, String> buildEnv(ClientsTestCtx ctx, ConnectionInfo conn);
 }

@@ -58,22 +58,6 @@ public class ClientsReporter {
         CliLogger.println(false, "@|bold Dry run|@ - pass -y to actually run these.");
     }
 
-    public static String preparingReposMessage(int done, int total) {
-        return "Preparing client repos (@!" + done + "/" + total + "!@)...";
-    }
-
-    public static String bootstrappingMessage() {
-        return "Ensuring @!default_keyspace!@ exists...";
-    }
-
-    public static String wipingMessage(String label) {
-        return "Wiping target database for @!" + label + "!@...";
-    }
-
-    public static String runningMessage(String label) {
-        return "Running @!" + label + "!@ integration tests...";
-    }
-
     public static void printRunningHeader() {
         CliLogger.println(false);
         CliLogger.println(false, "@|bold Running:|@");
@@ -124,29 +108,27 @@ public class ClientsReporter {
     }
 
     private static String describeRepoSpec(ClientArtifactSpec spec) {
-        if (spec instanceof LocalPath localPath) {
-            return "local: " + localPath.path();
-        }
-
-        val remote = (Remote) spec;
-        return remote.repo() + "@" + remote.ref();
+        return switch (spec) {
+            case LocalPath(var path) -> "local: " + path;
+            case Remote(var repo, var ref) -> repo + "@" + ref;
+        };
     }
 
     private static List<String> collectSecrets(ClientsTestCtx ctx) {
-        val secrets = new ArrayList<String>();
-        secrets.add(ctx.connectionInfo().token());
-        secrets.addAll(ctx.credentials().secretValues());
-        ctx.rerankingKey().ifPresent(secrets::add);
-        return secrets;
+        return new ArrayList<>() {{
+            add(ctx.connectionInfo().token());
+            ctx.connectionInfo().username().ifPresent(this::add);
+            ctx.connectionInfo().password().ifPresent(this::add);
+            addAll(ctx.credentials().secretValues());
+        }};
     }
 
     private static String mask(String value, List<String> secrets) {
-        var result = value;
         for (val secret : secrets) {
             if (!secret.isBlank()) {
-                result = result.replace(secret, "****");
+                value = value.replace(secret, "****");
             }
         }
-        return result;
+        return value;
     }
 }

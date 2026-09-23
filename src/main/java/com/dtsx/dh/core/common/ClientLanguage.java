@@ -1,7 +1,11 @@
 package com.dtsx.dh.core.common;
 
 import com.dtsx.dh.core.clients.ClientSuite;
+import com.dtsx.dh.core.clients.impls.CSharpSuite;
 import com.dtsx.dh.core.clients.impls.GoSuite;
+import com.dtsx.dh.core.clients.impls.JavaSuite;
+import com.dtsx.dh.core.clients.impls.PythonSuite;
+import com.dtsx.dh.core.clients.impls.TypeScriptSuite;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.docs.runner.drivers.impls.*;
 import lombok.Getter;
@@ -25,25 +29,25 @@ public enum ClientLanguage {
         ".java",
         "\"com.datastax.astra:astra-db-java:2.+\"",
         JavaDriver::new,
-        null
+        JavaSuite::new
     ),
     PYTHON(
         ".py",
         "astrapy",
         PythonDriver::new,
-        null
+        PythonSuite::new
     ),
     TYPESCRIPT(
         ".ts",
         "@datastax/astra-db-ts",
         TypeScriptDriver::new,
-        null
+        TypeScriptSuite::new
     ),
     CSHARP(
         ".cs",
         "<PackageReference Include=\"DataStax.AstraDB.DataApi\" Version=\"2.*-*\"/>",
         CSharpDriver::new,
-        null
+        CSharpSuite::new
     ),
     GO(
         ".go",

@@ -27,8 +27,7 @@ public class ClientsTestArgs extends BaseConnectedArgs<ClientsTestCtx> {
 
     @Option(
         names = { "--reranking-key" },
-        description = "Reranking API key. Defaults to the Astra token on Astra; a DataStax dev Astra token is required on HCD.",
-        defaultValue = "${RERANKING_API_KEY:-" + Option.NULL_VALUE + "}",
+        description = "Reranking API key. Defaults to the RERANKING_API_KEY env var, then to the Astra token on Astra; a DataStax dev Astra token is required on HCD.",
         paramLabel = "KEY"
     )
     public Optional<String> $rerankingKey;
@@ -60,6 +59,13 @@ public class ClientsTestArgs extends BaseConnectedArgs<ClientsTestCtx> {
         negatable = true
     )
     public Optional<Boolean> $admin;
+
+    @Option(
+        names = { "--cassandra-contact-point" },
+        description = "CQL contact point for astrapy's own tests, against a non-local HCD target. Defaults to the LOCAL_CASSANDRA_CONTACT_POINT env var, then - with `--local` - to 127.0.0.1.",
+        paramLabel = "HOST"
+    )
+    public Optional<String> $cassandraContactPoint;
 
     @Option(
         names = { "-R", "--repo" },

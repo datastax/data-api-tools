@@ -1,6 +1,7 @@
 package com.dtsx.dh.config;
 
 import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.dtsx.dh.config.args.BaseConnectedArgs;
 import com.dtsx.dh.core.common.CliException;
 import lombok.Getter;
@@ -14,8 +15,8 @@ import java.util.Optional;
 /// Allows for abstraction over Astra vs HCD connections.
 @Getter
 public class ConnectionInfo {
-    public static final String LOCAL_ENDPOINT = "http://localhost:8181";
-    public static final String LOCAL_TOKEN = "Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh";
+    public static final String LOCAL_ENDPOINT = UsernamePasswordTokenProvider.DEFAULT_URL;
+    public static final String LOCAL_TOKEN = new UsernamePasswordTokenProvider().getToken();
 
     private final String token;
     private final String endpoint;
@@ -23,6 +24,14 @@ public class ConnectionInfo {
 
     private final Optional<String> username;
     private final Optional<String> password;
+
+    public boolean isAstra() {
+        return destination.name().startsWith("ASTRA");
+    }
+
+    public boolean isLocal() {
+        return !isAstra();
+    }
 
     /// Builds a [ConnectionInfo] from the `--local` / `-e` / `-t` flags alone.
     ///
@@ -66,7 +75,7 @@ public class ConnectionInfo {
             .or(() -> Optional.ofNullable(System.getenv(envVar)));
     }
 
-    public ConnectionInfo(String token, String endpoint) {
+    private ConnectionInfo(String token, String endpoint) {
         this.token = token;
         this.endpoint = endpoint;
 
@@ -79,20 +88,40 @@ public class ConnectionInfo {
                 ? DataAPIDestination.ASTRA_TEST
                 : DataAPIDestination.HCD;
 
-        if (token.startsWith("Cassandra:")) {
-            val parts = token.split(":");
-
-            if (parts.length != 3) {
-                throw new CliException("Invalid Cassandra:... token format; expected 3 parts but got " + parts.length + " parts");
-            }
-
-            val decoder = Base64.getDecoder();
-
-            this.username = Optional.of(new String(decoder.decode(parts[1])));
-            this.password = Optional.of(new String(decoder.decode(parts[2])));
+        if (this.destination == DataAPIDestination.HCD) {
+            val credentials = decodeCassandraToken(token, endpoint);
+            this.username = Optional.of(credentials[0]);
+            this.password = Optional.of(credentials[1]);
         } else {
             this.username = Optional.empty();
             this.password = Optional.empty();
+        }
+    }
+
+    /// Splits a `Cassandra:<base64 username>:<base64 password>` token into its decoded halves.
+    ///
+    /// Every non-Astra endpoint authenticates with one, so this is where a token in any other shape
+    /// is rejected - leaving [#username] and [#password] always present for an HCD target.
+    private static String[] decodeCassandraToken(String token, String endpoint) {
+        if (!token.startsWith("Cassandra:")) {
+            throw new CliException(endpoint + " is not an Astra endpoint, so it needs a `Cassandra:<base64 username>:<base64 password>` token; got one in a different format.");
+        }
+
+        val parts = token.split(":");
+
+        if (parts.length != 3) {
+            throw new CliException("Invalid Cassandra:... token format; expected 3 parts but got " + parts.length + " parts");
+        }
+
+        val decoder = Base64.getDecoder();
+
+        try {
+            return new String[] {
+                new String(decoder.decode(parts[1])),
+                new String(decoder.decode(parts[2]))
+            };
+        } catch (IllegalArgumentException e) {
+            throw new CliException("Invalid Cassandra:... token format; the username and password parts must be base64-encoded", e);
         }
     }
 }

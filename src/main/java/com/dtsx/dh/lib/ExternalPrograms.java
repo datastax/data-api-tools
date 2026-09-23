@@ -69,6 +69,22 @@ public class ExternalPrograms {
         return get(DOTNET, ctx);
     }
 
+    /// Returns a dotnet executor that must have an 8.x SDK installed, for repos pinning `net8.0`.
+    ///
+    /// `--list-sdks` is the probe rather than `--version`, which reports whichever SDK the current
+    /// directory's `global.json` selected and fails outright when that one is absent.
+    public static ExternalProgram dotnet8(BaseCtx ctx) {
+        return get(DOTNET, ctx, DOTNET_8_SDK);
+    }
+
+    private static final Pattern DOTNET_8_SDK_PATTERN = Pattern.compile("(?m)^8\\.\\d");
+
+    private static final Requirement DOTNET_8_SDK = new Requirement(
+        List.of("--list-sdks"),
+        (output) -> DOTNET_8_SDK_PATTERN.matcher(output).find(),
+        "an 8.x .NET SDK"
+    );
+
     /// Returns a jq executor (default: `jq`).
     ///
     /// Used to further refine JSON.
@@ -90,6 +106,20 @@ public class ExternalPrograms {
         return get(GIT, ctx);
     }
 
+    /// Returns a mvn executor (default: `mvn`).
+    ///
+    /// Used to run the java client's integration suite.
+    public static ExternalProgram mvn(BaseCtx ctx) {
+        return get(MVN, ctx);
+    }
+
+    /// Returns a uv executor (default: `uv`).
+    ///
+    /// Used to install dependencies and run astrapy's integration suite.
+    public static ExternalProgram uv(BaseCtx ctx) {
+        return get(UV, ctx);
+    }
+
     /// Returns a node executor (default: `node`).
     ///
     /// Used to run the TypeScript toolchain.
@@ -105,20 +135,26 @@ public class ExternalPrograms {
     }
 
     private static ExternalProgram get(ExternalProgramType type, BaseCtx ctx) {
+        return get(type, ctx, type.requirement);
+    }
+
+    /// Builds a program from `type`, overriding [ExternalProgramType#requirement] with `requirement`
+    /// - for a caller that needs something more specific than that entry's own (global) requirement.
+    private static ExternalProgram get(ExternalProgramType type, BaseCtx ctx, @Nullable Requirement requirement) {
         return new ExternalProgram(
             type.name().toLowerCase(),
             ctx.commandOverrides().getOrDefault(type, type.defaultCommand()),
             Optional.of(type.existsCheckArg),
-            Optional.ofNullable(type.versionRequirement)
+            Optional.ofNullable(requirement)
         );
     }
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
 
-    /// Builds a [VersionRequirement] matching output containing a `major.minor[.patch]` version at
-    /// least as high as the one given (the first such pattern found in the output, e.g. within
-    /// `go version go1.23.4 darwin/arm64`).
-    private static VersionRequirement minVersion(int minMajor, int minMinor, int minPatch) {
+    /// Builds a [Requirement] matching output containing a `major.minor[.patch]` version at least as
+    /// high as the one given (the first such pattern found in the output, e.g. within
+    /// `go version go1.23.4 darwin/arm64`), probed with `probeArg`.
+    private static Requirement minVersion(String probeArg, int minMajor, int minMinor, int minPatch) {
         Predicate<String> predicate = (output) -> {
             val matcher = VERSION_PATTERN.matcher(output);
 
@@ -135,12 +171,15 @@ public class ExternalPrograms {
             return patch >= minPatch;
         };
 
-        return new VersionRequirement(predicate, minMajor + "." + minMinor + "." + minPatch);
+        return new Requirement(List.of(probeArg), predicate, "version >= " + minMajor + "." + minMinor + "." + minPatch);
     }
 
-    /// A version floor checked against an exists-check's output, paired with a human-readable
-    /// description of that floor (e.g. `1.23.0`) for error messages.
-    public record VersionRequirement(Predicate<String> predicate, String describe) {}
+    /// One requirement a program's exists-check output must satisfy: `probeArgs` are run against the
+    /// program in place of its plain exists-check, and `predicate` is tested against the combined
+    /// output. `describe` is a short phrase for what's required (e.g. `version >= 1.23.0`, `an 8.x
+    /// .NET SDK`) - it must not repeat the remedy [BaseCtx#verifyRequiredProgramsAvailable] already
+    /// appends.
+    public record Requirement(List<String> probeArgs, Predicate<String> predicate, String describe) {}
 
     /// Enum of external programs with their default commands.
     ///
@@ -150,19 +189,21 @@ public class ExternalPrograms {
         TSX("npx -y tsx", "--version", null),
         NPM("npm", "--version", null),
         BASH("bash", "--version", null),
-        PYTHON("python3", "--version", minVersion(3, 10, 0)),
-        JAVA("java", "--version", minVersion(17, 0, 0)),
+        PYTHON("python3", "--version", minVersion("--version", 3, 10, 0)),
+        JAVA("java", "--version", minVersion("--version", 17, 0, 0)),
         DOTNET("dotnet", "--version", null),
         JQ("jq", "--version", null),
-        GO("go", "version", minVersion(1, 23, 0)),
+        GO("go", "version", minVersion("version", 1, 23, 0)),
         GIT("git", "--version", null),
-        NODE("node", "--version", minVersion(18, 0, 0));
+        NODE("node", "--version", minVersion("--version", 18, 0, 0)),
+        UV("uv", "--version", null),
+        MVN("mvn", "--version", minVersion("--version", 3, 6, 3));
 
         private final String defaultCommand;
         private final String existsCheckArg;
 
-        /// Version floor checked against the exists-check output, or `null` to only check presence.
-        private final @Nullable VersionRequirement versionRequirement;
+        /// Requirement checked against the exists-check output, or `null` to only check presence.
+        private final @Nullable Requirement requirement;
 
         public String[] defaultCommand() {
             return defaultCommand.split(" ");
@@ -235,7 +276,7 @@ public class ExternalPrograms {
     /// val tsx = ExternalPrograms.tsx(ctx);
     /// val result = tsx.run(Path.of("/tmp"), "script.ts", "--verbose");
     /// ```
-    public record ExternalProgram(String name, String[] cmd, Optional<String> existsCheckArg, Optional<VersionRequirement> versionRequirement) {
+    public record ExternalProgram(String name, String[] cmd, Optional<String> existsCheckArg, Optional<Requirement> requirement) {
         public ExternalProgram(String name, String[] cmd, Optional<String> existsCheckArg) {
             this(name, cmd, existsCheckArg, Optional.empty());
         }
@@ -333,26 +374,28 @@ public class ExternalPrograms {
             return runOrThrow(null, args);
         }
 
-        /// Checks whether the program exists, is executable, and (when [#versionRequirement] is
-        /// present) meets its version floor, by running `<program> <existsCheckArg>` and inspecting
-        /// its output.
+        /// Checks whether the program exists, is executable, and (when [#requirement] is present)
+        /// satisfies it, by running a single probe - [Requirement#probeArgs] when a requirement is
+        /// present, else `<program> <existsCheckArg>` - and inspecting its output.
         ///
         /// @return empty if the program is usable, otherwise a short lower-case phrase describing
         /// the failure
         public Optional<String> problem() {
-            if (existsCheckArg.isEmpty()) {
+            val probeArgs = requirement.map(Requirement::probeArgs).or(() -> existsCheckArg.map(List::of));
+
+            if (probeArgs.isEmpty()) {
                 return Optional.empty();
             }
 
-            val result = run(existsCheckArg.get());
+            val result = run(probeArgs.get().toArray(new String[0]));
 
             if (result.notOk()) {
                 return Optional.of("could not be found");
             }
 
-            return versionRequirement
+            return requirement
                 .filter((req) -> !req.predicate().test(result.output()))
-                .map((req) -> "requires version >= " + req.describe());
+                .map((req) -> "requires " + req.describe());
         }
 
         /// Returns the environment variable name used to override this program's command.

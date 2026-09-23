@@ -45,7 +45,7 @@ public class HelperCli {
     /// Adding a new scope (e.g. `db`) is a one-line change here.
     private static final Set<String> ENV_SCOPES = Set.of("docs", "clients");
 
-    @SuppressWarnings("UnnecessaryModifier")
+    @SuppressWarnings({ "UnnecessaryModifier", "InstantiationOfUtilityClass" })
     public static void main(String[] args) {
         loadDotenvFiles(args);
 
@@ -89,16 +89,7 @@ public class HelperCli {
             .toList();
 
         for (val dir : dirs) {
-            val bareEnvFile = dir.resolve(".env");
-
-            if (Files.isRegularFile(bareEnvFile)) {
-                // stderr, not CliLogger: `dh compgen`'s stdout gets `source`d by scripts/dev-alias.sh,
-                // so anything printed there has to be a valid shell script.
-                System.err.println("[WARN] Found a bare `.env` file at `" + bareEnvFile + "` - it is ignored; please rename it to `.env.common`.");
-            }
-
             applyDotenvFile(dir.resolve(".env.common"));
-
             scope.ifPresent((s) -> applyDotenvFile(dir.resolve(".env." + s)));
         }
     }

@@ -21,6 +21,8 @@ public class ClientsTestCmd extends BaseCmd<ClientsTestCtx> {
     protected int run() {
         ClientsReporter.printHeader(ctx);
 
+        ClientsRunner.prepareRepos(ctx);
+
         val plan = ClientsPlan.build(ctx);
         ClientsReporter.printPlan(ctx, plan);
 

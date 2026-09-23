@@ -7,7 +7,8 @@ import com.dtsx.dh.config.ctx.BaseCtx;
 import com.dtsx.dh.core.clients.ClientArtifactSpec;
 import com.dtsx.dh.core.clients.ClientSuite;
 import com.dtsx.dh.core.clients.ClientToggles;
-import com.dtsx.dh.core.clients.ProviderCredentials;
+import com.dtsx.dh.core.clients.SuiteCredentials;
+import com.dtsx.dh.core.clients.impls.PythonSuite;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
@@ -34,8 +35,8 @@ public class ClientsTestCtx extends BaseConnectedCtx {
     private final Map<ClientLanguage, ClientSuite> suites;
     private final Map<ClientLanguage, ClientArtifactSpec> repoSpecs;
     private final ClientToggles toggles;
-    private final ProviderCredentials credentials;
-    private final Optional<String> rerankingKey;
+    private final SuiteCredentials credentials;
+    private final Optional<String> cassandraContactPoint;
     private final boolean yes;
     private final boolean bail;
     private final boolean clean;
@@ -56,14 +57,15 @@ public class ClientsTestCtx extends BaseConnectedCtx {
         super(args, spec, resolveConnectionInfo(spec.commandLine(), args));
         this.suites = mkSuites(cmd, args);
         this.toggles = mkToggles(cmd, args);
-        this.credentials = ProviderCredentials.resolve(args.$embeddingKeys);
-        this.rerankingKey = args.$rerankingKey;
+        this.credentials = SuiteCredentials.resolve(args.$embeddingKeys, args.$rerankingKey, connectionInfo());
+        this.cassandraContactPoint = resolveCassandraContactPoint(args);
         this.repoSpecs = mkRepoSpecs(args, suites);
         this.yes = args.$yes.unwrap();
         this.bail = args.$bail.unwrap();
         this.clean = args.$clean;
 
         verifyRequiredCredentials(cmd, suites, toggles, credentials);
+        verifyRerankingCredential(cmd, suites, toggles, credentials);
     }
 
     @Override
@@ -86,6 +88,15 @@ public class ClientsTestCtx extends BaseConnectedCtx {
         }
 
         return info;
+    }
+
+    /// Resolves astrapy's CQL contact point from, in order, `--cassandra-contact-point` then the
+    /// `LOCAL_CASSANDRA_CONTACT_POINT` env var (checked as a system property first). Empty means
+    /// [com.dtsx.dh.core.clients.impls.PythonSuite] falls back to its own local-stack default.
+    private static Optional<String> resolveCassandraContactPoint(ClientsTestArgs args) {
+        return args.$cassandraContactPoint
+            .or(() -> Optional.ofNullable(System.getProperty(PythonSuite.LOCAL_CASSANDRA_CONTACT_POINT_VAR)))
+            .or(() -> Optional.ofNullable(System.getenv(PythonSuite.LOCAL_CASSANDRA_CONTACT_POINT_VAR)));
     }
 
     private Map<ClientLanguage, ClientSuite> mkSuites(CommandLine cmd, ClientsTestArgs args) {
@@ -145,7 +156,7 @@ public class ClientsTestCtx extends BaseConnectedCtx {
         return result;
     }
 
-    private void verifyRequiredCredentials(CommandLine cmd, Map<ClientLanguage, ClientSuite> suites, ClientToggles toggles, ProviderCredentials credentials) {
+    private void verifyRequiredCredentials(CommandLine cmd, Map<ClientLanguage, ClientSuite> suites, ClientToggles toggles, SuiteCredentials credentials) {
         if (!toggles.vectorize()) {
             return;
         }
@@ -156,6 +167,22 @@ public class ClientsTestCtx extends BaseConnectedCtx {
             if (provider != null && !credentials.has(provider)) {
                 throw new ParameterException(cmd, suite.language().name() + " requires an embedding key for provider '" + provider + "' when vectorize is on; " +
                     "pass `-K " + provider + "=<key>`, set the `EMBEDDING_API_KEY_" + provider.toUpperCase() + "` env var, or run with `--no-vectorize`."
+                );
+            }
+        }
+    }
+
+    /// On HCD there's no Astra token for [SuiteCredentials] to fall back to, so a selected suite
+    /// that needs the reranking key must fail up front rather than run with it silently unset.
+    private void verifyRerankingCredential(CommandLine cmd, Map<ClientLanguage, ClientSuite> suites, ClientToggles toggles, SuiteCredentials credentials) {
+        if (!toggles.reranking() || connectionInfo().destination() != DataAPIDestination.HCD || credentials.rerankingKey().isPresent()) {
+            return;
+        }
+
+        for (val suite : suites.values()) {
+            if (suite.needsRerankingKey()) {
+                throw new ParameterException(cmd, suite.language().name() + " requires a reranking key on HCD when --reranking is on; " +
+                    "pass `--reranking-key <key>`, set the `RERANKING_API_KEY` env var, or run with `--no-reranking`."
                 );
             }
         }
