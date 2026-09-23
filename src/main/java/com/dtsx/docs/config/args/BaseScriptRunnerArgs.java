@@ -7,9 +7,8 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 import java.util.Map;
-import java.util.Optional;
 
-public abstract class BaseScriptRunnerArgs<Ctx extends BaseScriptRunnerCtx> extends BaseArgs<Ctx> {
+public abstract class BaseScriptRunnerArgs<Ctx extends BaseScriptRunnerCtx> extends BaseConnectedArgs<Ctx> {
     @Mixin
     public ExamplesFolderMixin $examplesFolder;
 
@@ -19,22 +18,6 @@ public abstract class BaseScriptRunnerArgs<Ctx extends BaseScriptRunnerCtx> exte
         paramLabel = "CLIENT=ARTIFACT"
     )
     public Map<ClientLanguage, String> $artifactOverrides = Map.of();
-
-    @Option(
-        names = { "-t", "--astra-token" },
-        description = "Astra token",
-        defaultValue = "${ASTRA_TOKEN}",
-        paramLabel = "TOKEN"
-    )
-    public Optional<String> $token;
-
-    @Option(
-        names = { "-e", "--api-endpoint" },
-        description = "Test database API endpoint.",
-        defaultValue = "${API_ENDPOINT}",
-        paramLabel = "ENDPOINT"
-    )
-    public Optional<String> $apiEndpoint;
 
     @Option(
         names = { "--clean" },

@@ -1,6 +1,7 @@
 package com.dtsx.docs;
 
 import com.dtsx.docs.commands.completions.CompgenCmd;
+import com.dtsx.docs.commands.db.DbCmd;
 import com.dtsx.docs.commands.docs.DocsCmd;
 import com.dtsx.docs.commands.logs.LogsCmd;
 import com.dtsx.docs.commands.startgate.StartgateCmd;
@@ -29,6 +30,7 @@ import static com.dtsx.docs.lib.ColorUtils.ACCENT_COLOR;
         CompgenCmd.class,
         LogsCmd.class,
         StartgateCmd.class,
+        DbCmd.class,
     }
 )
 public class HelperCli {
@@ -66,7 +68,7 @@ public class HelperCli {
     }
 
     /// Loads `.env.common`, then `.env.<scope>` (if any CLI arg names a known scope),
-    /// from both `./` and `CLI_DIR` - same two directories the old single `.env` loader used.
+    /// from both `./` and `CLI_DIR`.
     ///
     /// A bare `.env`, if present, is loaded as though it were `.env.common`, with a deprecation warning.
     ///

@@ -1,6 +1,5 @@
 package com.dtsx.docs.config.ctx;
 
-import com.dtsx.docs.config.ArgUtils;
 import com.dtsx.docs.config.ConnectionInfo;
 import com.dtsx.docs.config.args.BaseScriptRunnerArgs;
 import com.dtsx.docs.core.runner.drivers.ClientDriver;
@@ -24,18 +23,12 @@ import java.util.function.Function;
 import static com.dtsx.docs.HelperCli.CLI_DIR;
 
 @Getter
-public abstract class BaseScriptRunnerCtx extends BaseCtx {
+public abstract class BaseScriptRunnerCtx extends BaseConnectedCtx {
     /// Resolved from `EXAMPLES_FOLDER` env var, with fallback to `./resources/mock_examples`.
     ///
     /// If the provided path doesn't have `_base/` and `_fixtures/` subdirectories,
     /// automatically tries `<path>/modules/api-reference/examples` (for docs repo structure).
     private final Path examplesFolder;
-
-    /// Parsed from `-t`/`--astra-token` flag or `ASTRA_TOKEN` env var, and `-e`/`--api-endpoint` flag or `API_ENDPOINT` env var.
-    ///
-    /// The token must have read/write access to the test database, and the endpoint
-    /// determines whether we're testing against a collection or table API.
-    private final ConnectionInfo connectionInfo;
 
     @Getter(AccessLevel.NONE)
     private final Path execEnvTemplatesFolder;
@@ -58,9 +51,8 @@ public abstract class BaseScriptRunnerCtx extends BaseCtx {
     }
 
     public BaseScriptRunnerCtx(BaseScriptRunnerArgs<?> args, CommandSpec spec) {
-        super(args, spec);
+        super(args, spec, ConnectionInfo.fromFlagsOrEnv(spec.commandLine(), args));
         this.examplesFolder = args.$examplesFolder.resolve();
-        this.connectionInfo = mkConnectionInfo(cmd, args);
         this.execEnvTemplatesFolder = CLI_DIR.resolve("resources/environments/");
         this.clean = args.$clean;
         this.bail = args.$bail;
@@ -73,12 +65,6 @@ public abstract class BaseScriptRunnerCtx extends BaseCtx {
             add(ExternalPrograms::bash);
             add(ExternalPrograms::tsx);
         }};
-    }
-
-    private ConnectionInfo mkConnectionInfo(CommandLine cmd, BaseScriptRunnerArgs<?> args) {
-        val token = ArgUtils.requireFlag(cmd, args.$token, "astra token", "-t", "ASTRA_TOKEN");
-        val apiEndpoint = ArgUtils.requireFlag(cmd, args.$apiEndpoint, "API endpoint", "-e", "API_ENDPOINT");
-        return new ConnectionInfo(token, apiEndpoint);
     }
 
     protected ClientDriver mkDriverForLanguage(CommandLine cmd, ClientLanguage lang, BaseScriptRunnerArgs<?> args) {

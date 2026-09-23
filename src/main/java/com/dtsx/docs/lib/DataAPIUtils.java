@@ -1,6 +1,7 @@
 package com.dtsx.docs.lib;
 
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
@@ -20,6 +21,12 @@ public class DataAPIUtils {
 
     public static Database getDatabase(ConnectionInfo info, String keyspace) {
         return mkDb(info, keyspace);
+    }
+
+    /// Admin operations (listing/creating/dropping keyspaces) aren't scoped to a keyspace,
+    /// so this just needs any `Database` handle to hang the admin client off of.
+    public static DatabaseAdmin getDatabaseAdmin(ConnectionInfo info) {
+        return mkDb(info, DataAPIClientOptions.DEFAULT_KEYSPACE).getDatabaseAdmin();
     }
 
     private static DataAPIClient mkClient(ConnectionInfo info) {
