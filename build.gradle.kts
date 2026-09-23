@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.dtsx.docs"
+group = "com.dtsx.dh"
 version = "1.0.0-alpha.1"
 
 repositories {
@@ -43,7 +43,7 @@ dependencies {
 
 application {
     applicationDefaultJvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
-    mainClass.set("com.dtsx.docs.HelperCli")
+    mainClass.set("com.dtsx.dh.HelperCli")
 }
 
 tasks.register<Jar>("fatJar") {
@@ -58,7 +58,7 @@ tasks.register<Jar>("fatJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes["Main-Class"] = "com.dtsx.docs.HelperCli"
+        attributes["Main-Class"] = "com.dtsx.dh.HelperCli"
     }
 
     from(sourceSets.main.get().output)
