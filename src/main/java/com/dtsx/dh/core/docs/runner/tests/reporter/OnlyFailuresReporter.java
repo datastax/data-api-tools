@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.runner.tests.reporter;
 
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.runner.tests.results.TestResults;
 import com.dtsx.dh.core.docs.runner.tests.results.TestRootResults;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ public class OnlyFailuresReporter extends TestReporter {
     private int printedFixtures = 0;
     private @Nullable Runnable printBaseFixtureName;
 
-    public OnlyFailuresReporter(TestCtx ctx) {
+    public OnlyFailuresReporter(DocsTestCtx ctx) {
         super(ctx);
     }
 

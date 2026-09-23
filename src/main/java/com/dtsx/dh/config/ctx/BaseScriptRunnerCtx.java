@@ -55,7 +55,7 @@ public abstract class BaseScriptRunnerCtx extends BaseConnectedCtx {
         this.examplesFolder = args.$examplesFolder.resolve();
         this.execEnvTemplatesFolder = CLI_DIR.resolve("resources/environments/");
         this.clean = args.$clean;
-        this.bail = args.$bail;
+        this.bail = args.$bail.unwrap();
     }
 
     @Override
@@ -70,15 +70,12 @@ public abstract class BaseScriptRunnerCtx extends BaseConnectedCtx {
     protected ClientDriver mkDriverForLanguage(CommandLine cmd, ClientLanguage lang, BaseScriptRunnerArgs<?> args) {
         val usesArtifact = lang.defaultArtifact() != null;
 
-        val envVarName = lang.name().toUpperCase() + "_ARTIFACT";
-
-        val resolvedArtifact = Optional.ofNullable(args.$artifactOverrides.get(lang))
-            .or(() -> Optional.ofNullable(System.getProperty(envVarName)));
+        val resolvedArtifact = languageOverride(lang, args.$artifactOverrides, "ARTIFACT");
 
         if (resolvedArtifact.isPresent() && !usesArtifact) {
             throw new ParameterException(cmd, lang.name() + " does not support artifact overrides.");
         }
 
-        return lang.mkDriver().apply(resolvedArtifact.orElse(lang.defaultArtifact()));
+        return lang.mkDocsDriver().apply(resolvedArtifact.orElse(lang.defaultArtifact()));
     }
 }

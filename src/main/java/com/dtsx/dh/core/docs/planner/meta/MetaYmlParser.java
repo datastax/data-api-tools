@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.planner.meta;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
-import com.dtsx.dh.core.docs.planner.PlanException;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.planner.meta.compiles.CompilesTestMeta;
 import com.dtsx.dh.core.docs.planner.meta.compiles.CompilesTestMetaRep;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMeta;
@@ -16,13 +16,13 @@ import java.nio.file.Path;
 import static com.dtsx.dh.core.docs.runner.tests.VerifyMode.COMPILE_ONLY;
 
 public class MetaYmlParser {
-    public static BaseMetaYml parseMetaYml(TestCtx ctx, Path ymlFile) {
+    public static BaseMetaYml parseMetaYml(DocsTestCtx ctx, Path ymlFile) {
         val rep = parseRep(ymlFile);
 
         validateSchemaPath(rep, ymlFile);
 
         if (rep.test().type() != rep.expectTestType()) {
-            throw new PlanException("'" + ymlFile + "' was parsed as a '" + rep.expectTestType() + "' test descriptor, but was actually a '" + rep.test().type() + "' test descriptor");
+            throw new CliException("'" + ymlFile + "' was parsed as a '" + rep.expectTestType() + "' test descriptor, but was actually a '" + rep.test().type() + "' test descriptor");
         }
 
         try {
@@ -36,7 +36,7 @@ public class MetaYmlParser {
                 default -> throw new RuntimeException(); // unreachable
             };
         } catch (Exception e) {
-            throw new PlanException("Failed to parse meta.yml file at '" + ymlFile + "': " + e.getMessage(), e);
+            throw new CliException("Failed to parse meta.yml file at '" + ymlFile + "': " + e.getMessage(), e);
         }
     }
 
@@ -47,7 +47,7 @@ public class MetaYmlParser {
             try {
                 return JacksonUtils.parseYaml(file, CompilesTestMetaRep.class);
             } catch (JacksonException ce) {
-                throw new PlanException("Failed to parse meta.yml file at '" + file + "'; errors:\n" +
+                throw new CliException("Failed to parse meta.yml file at '" + file + "'; errors:\n" +
                     "- SnapshotTestMetaYml: " + se.getMessage() + "\n" +
                     "- CompilesTestMetaYml: " + ce.getMessage());
             }
@@ -58,7 +58,7 @@ public class MetaYmlParser {
         val schemaPath = ymlFile.getParent().resolve(rep.$schema());
 
         if (!Files.exists(schemaPath)) {
-            throw new PlanException("Invalid $schema path for '" + ymlFile + "'");
+            throw new CliException("Invalid $schema path for '" + ymlFile + "'");
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.planner.meta.compiles;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
 import com.dtsx.dh.core.docs.planner.fixtures.NoopFixture;
 import com.dtsx.dh.core.docs.planner.meta.BaseMetaYml;
@@ -19,7 +19,7 @@ public final class CompilesTestMeta implements BaseMetaYml {
     private final SkipConfig skipConfig;
     private final PlaceholderVars vars;
 
-    public CompilesTestMeta(TestCtx ctx, BaseMetaYmlRep meta) {
+    public CompilesTestMeta(DocsTestCtx ctx, BaseMetaYmlRep meta) {
         this.skipConfig = SkipConfig.parse((Map<ClientLanguage, SkipTestType> l) -> new SkipConfig(TestType.COMPILES, l), ctx, meta.test().skip(), new TypeReference<>() {});
         this.vars = meta.test().vars().orElse(PlaceholderVars.EMPTY);
     }

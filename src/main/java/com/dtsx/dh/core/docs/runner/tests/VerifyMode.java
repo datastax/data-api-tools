@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.runner.tests;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.tests.strategies.test.CompilesTestStrategy;
 import org.approvaltests.core.Options;
 import org.approvaltests.inline.InlineOptions;
@@ -50,8 +50,8 @@ public enum VerifyMode {
     /// @param ctx the verifier context
     /// @param approvedFile the path to the approved snapshot file
     /// @return a function that configures ApprovalTests options
-    /// @throws RunException if mode is invalid for the configuration
-    public Function1<Options, Options> applyOptions(TestCtx ctx, Path approvedFile) {
+    /// @throws CliException if mode is invalid for the configuration
+    public Function1<Options, Options> applyOptions(DocsTestCtx ctx, Path approvedFile) {
         return switch (ctx.verifyMode()) {
             case NORMAL, NO_COMPILE_ONLY -> {
                 yield (o) -> o;
@@ -64,14 +64,14 @@ public enum VerifyMode {
                 try {
                     return o.inline(Files.readString(approvedFile), INLINE_OPTIONS);
                 } catch (IOException e) {
-                    throw new RunException("Failed to read example file for VERIFY_ONLY verification mode: " + approvedFile, e);
+                    throw new CliException("Failed to read example file for VERIFY_ONLY verification mode: " + approvedFile, e);
                 }
             };
             case DRY_RUN -> {
-                throw new RunException("DRY_RUN mode should not apply verification options; it should've skipped verification entirely.");
+                throw new CliException("DRY_RUN mode should not apply verification options; it should've skipped verification entirely.");
             }
             case COMPILE_ONLY -> {
-                throw new RunException("COMPILE_ONLY mode should not apply verification options; it should've used a different test strategy.");
+                throw new CliException("COMPILE_ONLY mode should not apply verification options; it should've used a different test strategy.");
             }
         };
     }

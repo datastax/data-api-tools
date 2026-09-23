@@ -1,9 +1,9 @@
 package com.dtsx.dh.core.docs.planner.fixtures;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.BaseFixturePool.FixtureIndex;
 import com.dtsx.dh.core.docs.runner.PlaceholderResolver;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.CliLogger;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
@@ -23,7 +23,7 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 public final class JSFixtureImpl extends JSFixture {
-    private final TestCtx ctx;
+    private final DocsTestCtx ctx;
     private final Path path;
     private final boolean dryRun;
 
@@ -47,7 +47,7 @@ public final class JSFixtureImpl extends JSFixture {
         try {
             return JacksonUtils.parseJson(output, FixtureMetadata.class).withIndex(index);
         } catch (Exception e) {
-            throw new RunException("Failed to parse fixture metadata JSON from " + path + ":\n" + output, e);
+            throw new CliException("Failed to parse fixture metadata JSON from " + path + ":\n" + output, e);
         }
     }
 
@@ -117,7 +117,7 @@ public final class JSFixtureImpl extends JSFixture {
         });
 
         if (res.exitCode() != 0) {
-            throw new RunException("Failed to call " + function + " in " + path + ":\nSTDOUT:\n" + res.stdout() + "\nSTDERR:\n" + res.stderr());
+            throw new CliException("Failed to call " + function + " in " + path + ":\nSTDOUT:\n" + res.stdout() + "\nSTDERR:\n" + res.stderr());
         }
 
         if (res.stdout().contains("function_not_found")) {

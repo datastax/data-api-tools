@@ -3,7 +3,7 @@ package com.dtsx.dh.commands.docs;
 import com.dtsx.dh.commands.docs.gen.GenCmd;
 import com.dtsx.dh.commands.docs.review.ReviewCmd;
 import com.dtsx.dh.commands.docs.run.RunCmd;
-import com.dtsx.dh.commands.docs.test.TestCmd;
+import com.dtsx.dh.commands.docs.test.DocsTestCmd;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Spec;
@@ -13,7 +13,7 @@ import picocli.CommandLine.Spec;
     description = "Commands for testing/generating documentation examples",
     mixinStandardHelpOptions = true,
     subcommands = {
-        TestCmd.class,
+        DocsTestCmd.class,
         RunCmd.class,
         ReviewCmd.class,
         GenCmd.class,

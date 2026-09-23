@@ -11,6 +11,8 @@ import java.util.concurrent.Callable;
 
 @Command(mixinStandardHelpOptions = true)
 public abstract class BaseCmd<Ctx extends BaseCtx> implements Callable<Integer> {
+    public static final int EXIT_CODE_TESTS_FAILED = 100;
+
     @Spec
     protected CommandSpec spec;
 

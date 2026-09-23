@@ -1,6 +1,7 @@
 package com.dtsx.dh.config.ctx;
 
 import com.dtsx.dh.config.args.BaseArgs;
+import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgramType;
 import lombok.Getter;
@@ -64,9 +65,16 @@ public abstract class BaseCtx {
         for (val mkProgram : requiredPrograms()) {
             val program = mkProgram.apply(this);
 
-            if (!program.exists()) {
-                throw new ParameterException(cmd, program.name() + " could not be found. Please install it or set the " + program.envVar() + " environment variable.");
-            }
+            program.problem().ifPresent((problem) -> {
+                throw new ParameterException(cmd, program.name() + " " + problem + "; please install or upgrade it, or set the " + program.envVar() + " environment variable.");
+            });
         }
+    }
+
+    /// Resolves a per-language override: an explicit flag value from `overrides`, else the
+    /// `<LANG>_<envSuffix>` system property, else empty.
+    protected Optional<String> languageOverride(ClientLanguage lang, Map<ClientLanguage, String> overrides, String envSuffix) {
+        return Optional.ofNullable(overrides.get(lang))
+            .or(() -> Optional.ofNullable(System.getProperty(lang.name().toUpperCase() + "_" + envSuffix)));
     }
 }

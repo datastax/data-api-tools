@@ -1,9 +1,9 @@
 package com.dtsx.dh.core.docs.planner;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMetaRep;
 import com.dtsx.dh.core.docs.runner.PlaceholderVars;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.core.docs.runner.tests.strategies.test.TestStrategy;
 import lombok.Getter;
@@ -47,7 +47,7 @@ public class TestRoot implements Comparable<TestRoot> {
     private final String rootName;
     private final PlaceholderVars vars;
 
-    public TestRoot(TestCtx ctx, Path path, TreeMap<ClientLanguage, Set<Path>> filesToTest, TestStrategy<?> testStrategy) {
+    public TestRoot(DocsTestCtx ctx, Path path, TreeMap<ClientLanguage, Set<Path>> filesToTest, TestStrategy<?> testStrategy) {
         this.path = path;
         this.filesToTest = filesToTest;
         this.testStrategy = testStrategy;
@@ -70,7 +70,7 @@ public class TestRoot implements Comparable<TestRoot> {
     /// @return the relative path from this test root to the example file
     public String displayPath(Path fileToTest) {
         if (!fileToTest.startsWith(this.path)) {
-            throw new RunException("File to test is not within the test root path"); // sanity check; should never be thrown
+            throw new CliException("File to test is not within the test root path"); // sanity check; should never be thrown
         }
         return rootName + "/" + path.relativize(fileToTest);
     }

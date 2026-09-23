@@ -1,7 +1,9 @@
 package com.dtsx.dh.commands.db.bootstrap;
 
 import com.dtsx.dh.config.args.BaseConnectedArgs;
+import com.dtsx.dh.config.args.mixins.YesMixin;
 import lombok.ToString;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 
@@ -18,11 +20,8 @@ public class BootstrapArgs extends BaseConnectedArgs<BootstrapCtx> {
     )
     public List<String> $keyspaces;
 
-    @Option(
-        names = { "-y", "--yes" },
-        description = "Actually perform the operation. Without this, prints the plan and exits."
-    )
-    public boolean $yes;
+    @Mixin
+    public YesMixin $yes;
 
     @Override
     public BootstrapCtx toCtx(CommandSpec spec) {

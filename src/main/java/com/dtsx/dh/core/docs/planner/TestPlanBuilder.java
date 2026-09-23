@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.planner;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestPlan.Builder;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
 import com.dtsx.dh.core.docs.planner.meta.BaseMetaYml.BaseMetaYmlRep.TestBlock.SkipConfig;
@@ -9,6 +9,7 @@ import com.dtsx.dh.core.docs.planner.meta.compiles.CompilesTestMeta;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMeta;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMetaRep;
 import com.dtsx.dh.core.common.ClientLanguage;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.tests.strategies.test.CompilesTestStrategy;
 import com.dtsx.dh.core.docs.runner.tests.strategies.test.SnapshotTestStrategy;
 import com.dtsx.dh.lib.CliLogger;
@@ -57,10 +58,10 @@ public class TestPlanBuilder {
     ///
     /// @param ctx the verifier context containing configuration and paths
     /// @return a test plan containing all discovered test roots grouped by base fixture
-    /// @throws PlanException if any errors occur during plan building
+    /// @throws CliException if any errors occur during plan building
     ///
     /// @see TestPlan
-    public static TestPlan buildPlan(TestCtx ctx) {
+    public static TestPlan buildPlan(DocsTestCtx ctx) {
         return CliLogger.loading("Building test plan", (_) -> {
             val testRoots = findTestRoots(ctx.examplesFolder());
 
@@ -80,7 +81,7 @@ public class TestPlanBuilder {
             CliLogger.println(true);
 
             if (plan.totalTests() == 0) {
-                throw new PlanException("No tests found to run after building test plan");
+                throw new CliException("No tests found to run after building test plan");
             }
 
             return plan;
@@ -102,12 +103,12 @@ public class TestPlanBuilder {
     ///
     /// @param examplesFolder the root examples directory to search
     /// @return list of paths to directories containing meta.yml files
-    /// @throws PlanException if the examples folder doesn't exist or no test roots are found
+    /// @throws CliException if the examples folder doesn't exist or no test roots are found
     ///
     /// @see TestRoot
     private static List<Path> findTestRoots(Path examplesFolder) {
         if (!Files.exists(examplesFolder) || !Files.isDirectory(examplesFolder)) {
-            throw new PlanException("Examples folder '" + examplesFolder + "' does not exist or is not a directory");
+            throw new CliException("Examples folder '" + examplesFolder + "' does not exist or is not a directory");
         }
 
         try (val files = Files.walk(examplesFolder)) {
@@ -119,12 +120,12 @@ public class TestPlanBuilder {
                 .toList();
 
             if (dirs.isEmpty()) {
-                throw new PlanException("No test roots found in examples directory '" + examplesFolder + "'");
+                throw new CliException("No test roots found in examples directory '" + examplesFolder + "'");
             }
 
             return dirs;
         } catch (IOException e) {
-            throw new PlanException("Failed to traverse examples directory '" + examplesFolder + "' to find test roots", e);
+            throw new CliException("Failed to traverse examples directory '" + examplesFolder + "' to find test roots", e);
         }
     }
 
@@ -217,7 +218,7 @@ public class TestPlanBuilder {
     /// @param ctx the verifier context
     /// @param gitignorePredicate predicate to test if paths should be ignored
     /// @return a pair of (base fixture, test root), or empty if skipped or no example files found
-    private static Optional<Pair<JSFixture, TestRoot>> mkTestRoot(TestCtx ctx, Path rootPath, Predicate<Path> gitignorePredicate) {
+    private static Optional<Pair<JSFixture, TestRoot>> mkTestRoot(DocsTestCtx ctx, Path rootPath, Predicate<Path> gitignorePredicate) {
         val meta = MetaYmlParser.parseMetaYml(ctx, rootPath.resolve(META_FILE));
 
         val filesToTest = findFilesToTestInRoot(rootPath, ctx, meta.skipConfig(), gitignorePredicate);
@@ -262,8 +263,8 @@ public class TestPlanBuilder {
     /// @param skipConfig the skip configuration to check if any languages should be skipped
     /// @param gitignorePredicate predicate to test if paths should be ignored based on .gitignore
     /// @return map of client languages to their example file paths
-    /// @throws PlanException if traversal fails
-    private static TreeMap<ClientLanguage, Set<Path>> findFilesToTestInRoot(Path root, TestCtx ctx, SkipConfig skipConfig, Predicate<Path> gitignorePredicate) {
+    /// @throws CliException if traversal fails
+    private static TreeMap<ClientLanguage, Set<Path>> findFilesToTestInRoot(Path root, DocsTestCtx ctx, SkipConfig skipConfig, Predicate<Path> gitignorePredicate) {
         val ret = new TreeMap<ClientLanguage, Set<Path>>();
 
         try (val children = Files.walk(root).skip(1)) {
@@ -279,13 +280,13 @@ public class TestPlanBuilder {
                 tryAppendChild(ctx, skipConfig, child, ret);
             });
         } catch (IOException e) {
-            throw new PlanException("Failed to traverse test root '" + root + "' to find example files", e);
+            throw new CliException("Failed to traverse test root '" + root + "' to find example files", e);
         }
 
         return ret;
     }
 
-    private static void tryAppendChild(TestCtx ctx, SkipConfig skipConfig, Path child, TreeMap<ClientLanguage, Set<Path>> ret) {
+    private static void tryAppendChild(DocsTestCtx ctx, SkipConfig skipConfig, Path child, TreeMap<ClientLanguage, Set<Path>> ret) {
         val fileName = child.getFileName().toString();
 
         for (val lang : ctx.languages()) {

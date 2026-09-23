@@ -1,7 +1,7 @@
 package com.dtsx.dh.commands.docs.review;
 
 import com.dtsx.dh.commands.BaseCmd;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.lib.CliLogger;
 import lombok.Getter;
 import lombok.val;
@@ -57,7 +57,7 @@ public class ReviewCmd extends BaseCmd<ReviewCtx> {
 
             val exitCode = installProcess.waitFor();
             if (exitCode != 0) {
-                throw new RunException("npm install failed with exit code: " + exitCode);
+                throw new CliException("npm install failed with exit code: " + exitCode);
             }
             return null;
         });
@@ -103,7 +103,7 @@ public class ReviewCmd extends BaseCmd<ReviewCtx> {
         Thread.sleep(2000);
         
         if (!dashboardProcess.isAlive()) {
-            throw new RunException("Dashboard process failed to start");
+            throw new CliException("Dashboard process failed to start");
         }
 
         val url = "http://localhost:" + ctx.port();

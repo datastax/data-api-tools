@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.output;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.docs.runner.tests.snapshots.sources.SnapshotSource;
@@ -13,7 +13,7 @@ public class OutputCaptureSource extends SnapshotSource {
     }
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         return SnapshotSourceUtils.extractOutput(name, res);
     }
 }

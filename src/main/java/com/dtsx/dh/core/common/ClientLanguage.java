@@ -1,10 +1,9 @@
 package com.dtsx.dh.core.common;
 
+import com.dtsx.dh.core.clients.ClientSuite;
+import com.dtsx.dh.core.clients.impls.GoSuite;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.docs.runner.drivers.impls.*;
-import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.CSharpSnapshotsReducer;
-import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.DefaultSnapshotsReducer;
-import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.SnapshotsReducer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /// Represents the various client languages available in enum form.
 ///
@@ -25,43 +25,46 @@ public enum ClientLanguage {
         ".java",
         "\"com.datastax.astra:astra-db-java:2.+\"",
         JavaDriver::new,
-        DefaultSnapshotsReducer.INSTANCE
+        null
     ),
     PYTHON(
         ".py",
         "astrapy",
         PythonDriver::new,
-        DefaultSnapshotsReducer.INSTANCE
+        null
     ),
     TYPESCRIPT(
         ".ts",
         "@datastax/astra-db-ts",
         TypeScriptDriver::new,
-        DefaultSnapshotsReducer.INSTANCE
+        null
     ),
     CSHARP(
         ".cs",
         "<PackageReference Include=\"DataStax.AstraDB.DataApi\" Version=\"2.*-*\"/>",
         CSharpDriver::new,
-        CSharpSnapshotsReducer.INSTANCE
+        null
     ),
     GO(
         ".go",
         "github.com/datastax/astra-db-go/v2@main",
         GoDriver::new,
-        DefaultSnapshotsReducer.INSTANCE
+        GoSuite::new
     ),
     BASH(
         ".sh",
         null,
         BashDriver::new,
-        DefaultSnapshotsReducer.INSTANCE
+        null
     );
 
     private final String extension;
     private final @Nullable String defaultArtifact;
-    private final Function<String, ClientDriver> mkDriver;
-    private final SnapshotsReducer snapshotsReducer;
+    private final Function<String, ClientDriver> mkDocsDriver;
+
+    /// Factory for this language's [ClientSuite], or `null` for languages `dh clients test` doesn't
+    /// support: `bash` (no client repo behind it) and any client language not yet wired up.
+    private final @Nullable Supplier<ClientSuite> mkClientSuite;
 
     public @Nullable String defaultArtifact() {
         return defaultArtifact;

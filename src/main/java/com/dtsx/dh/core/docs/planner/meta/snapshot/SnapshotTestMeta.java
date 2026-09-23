@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.planner.meta.snapshot;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
-import com.dtsx.dh.core.docs.planner.PlanException;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixtureImpl;
 import com.dtsx.dh.core.docs.planner.fixtures.NoopFixture;
@@ -37,7 +37,7 @@ public final class SnapshotTestMeta implements BaseMetaYml {
     private final ExecutionMode executionMode;
     private final PlaceholderVars vars;
 
-    public SnapshotTestMeta(TestCtx ctx, Path testRoot, SnapshotTestMetaRep meta) {
+    public SnapshotTestMeta(DocsTestCtx ctx, Path testRoot, SnapshotTestMetaRep meta) {
         this.skipConfig = SkipConfig.parse((Map<ClientLanguage, SkipTestType> l) -> new SkipConfig(TestType.SNAPSHOT, l), ctx, meta.test().skip(), new TypeReference<>() {});
         this.baseFixture = resolveBaseFixture(ctx, meta.fixtures().flatMap(FixturesConfig::base));
         this.testFixture = resolveTestFixture(ctx, testRoot);
@@ -59,10 +59,10 @@ public final class SnapshotTestMeta implements BaseMetaYml {
     /// @param ctx the verifier context
     /// @param fixtureName the optional name of the base fixture file
     /// @return the resolved [JSFixture]
-    /// @throws PlanException if the fixture doesn't exist
+    /// @throws CliException if the fixture doesn't exist
     ///
     /// @see JSFixture
-    private static JSFixture resolveBaseFixture(TestCtx ctx, Optional<String> fixtureName) {
+    private static JSFixture resolveBaseFixture(DocsTestCtx ctx, Optional<String> fixtureName) {
         if (fixtureName.isEmpty()) {
             return NoopFixture.SNAPSHOT_TESTS_INSTANCE;
         }
@@ -70,7 +70,7 @@ public final class SnapshotTestMeta implements BaseMetaYml {
         val path = ctx.examplesFolder().resolve(FIXTURES_DIR).resolve(fixtureName.get());
 
         if (!Files.exists(path)) {
-            throw new PlanException("Base fixture '" + fixtureName.get() + "' does not exist in '" + FIXTURES_DIR + "'");
+            throw new CliException("Base fixture '" + fixtureName.get() + "' does not exist in '" + FIXTURES_DIR + "'");
         }
 
         return mkJsFixtureImpl(ctx, path);
@@ -96,7 +96,7 @@ public final class SnapshotTestMeta implements BaseMetaYml {
     /// @return the resolved [JSFixture] (or no-op if fixture.js doesn't exist)
     ///
     /// @see JSFixture
-    private static JSFixture resolveTestFixture(TestCtx ctx, Path testRoot) {
+    private static JSFixture resolveTestFixture(DocsTestCtx ctx, Path testRoot) {
         val path = testRoot.resolve(DEFAULT_TEST_FIXTURE);
 
         if (!Files.exists(path)) {
@@ -106,7 +106,7 @@ public final class SnapshotTestMeta implements BaseMetaYml {
         return mkJsFixtureImpl(ctx, path);
     }
 
-    private static JSFixture mkJsFixtureImpl(TestCtx ctx, Path path) {
+    private static JSFixture mkJsFixtureImpl(DocsTestCtx ctx, Path path) {
         return new JSFixtureImpl(ctx, path, ctx.verifyMode() == DRY_RUN);
     }
 }

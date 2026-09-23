@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.verifier;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotsShareConfig;
@@ -42,7 +42,7 @@ public class SnapshotVerifier {
         new ObjectIdScrubber()
     ));
 
-    private final TestCtx ctx;
+    private final DocsTestCtx ctx;
     private final List<SnapshotSource> snapshotSources;
     private final SnapshotsShareConfig shareConfig;
 
@@ -78,7 +78,7 @@ public class SnapshotVerifier {
         }
 
         try {
-            val snapshot = driver.language().snapshotsReducer().reduceSnapshots(snapshots);
+            val snapshot = driver.snapshotsReducer().reduceSnapshots(snapshots);
             return verifySnapshot(driver, testRoot, snapshot);
         } catch (SnapshotReductionException e) {
             return TestOutcome.Mismatch.Mismatch.Mismatch.Mismatch.Mismatch.Mismatch.Mismatch.Mismatch.INSTANCE.alsoLog(testRoot, driver.language(), snapshots);

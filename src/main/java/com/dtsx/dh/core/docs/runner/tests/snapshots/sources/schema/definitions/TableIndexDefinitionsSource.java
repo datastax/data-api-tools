@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.schema.definitions;
 
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.TableIndexDefinitionSourceMeta;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
@@ -31,7 +31,7 @@ public class TableIndexDefinitionsSource extends SnapshotSource {
     }
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         val tableName = resolveName("table name", md, driver, overrideName, md::tableName);
 
         val table = DataAPIUtils.getTable(

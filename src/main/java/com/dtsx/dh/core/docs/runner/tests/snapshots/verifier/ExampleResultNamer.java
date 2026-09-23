@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.verifier;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotsShareConfig;
 import com.dtsx.dh.core.common.ClientLanguage;
@@ -17,13 +17,13 @@ public class ExampleResultNamer implements ApprovalNamer {
     private final String exampleName;
     private final String groupName;
     private final ClientLanguage language;
-    private final TestCtx ctx;
+    private final DocsTestCtx ctx;
 
     static {
         FileApprover.tracker.addAllowedDuplicates((_) -> true);
     }
 
-    public ExampleResultNamer(TestCtx ctx, ClientLanguage language, TestRoot testRoot, SnapshotsShareConfig shareConfig) {
+    public ExampleResultNamer(DocsTestCtx ctx, ClientLanguage language, TestRoot testRoot, SnapshotsShareConfig shareConfig) {
         this.exampleName = testRoot.rootName();
 
         this.groupName = (!shareConfig.isShared(language))

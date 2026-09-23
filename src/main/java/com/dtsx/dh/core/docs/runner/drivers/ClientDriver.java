@@ -3,16 +3,17 @@ package com.dtsx.dh.core.docs.runner.drivers;
 import com.dtsx.dh.config.ctx.BaseCtx;
 import com.dtsx.dh.config.ctx.BaseScriptRunnerCtx;
 import com.dtsx.dh.core.common.ClientLanguage;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.OutputJsonifySourceMeta;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifierFlags;
-import com.dtsx.dh.core.docs.runner.RunException;
 import com.dtsx.dh.core.docs.runner.drivers.impls.*;
+import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.DefaultSnapshotsReducer;
+import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.SnapshotsReducer;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
 import com.dtsx.dh.lib.ExternalPrograms.RunResult;
 import lombok.AllArgsConstructor;
 import lombok.val;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,7 +76,7 @@ public abstract class ClientDriver {
     /// @param ctx the verifier context
     /// @param execEnv the execution environment to set up
     /// @return the path where test files should be copied (e.g., `main.ts`, `src/main/java/Main.java`)
-    /// @throws RunException if setup fails
+    /// @throws CliException if setup fails
     public abstract Path setupExecutionEnvironment(BaseScriptRunnerCtx ctx, ExecutionEnvironment execEnv);
 
     /// Preprocesses the test script before execution if necessary (e.g. adding imports, prelude code, etc.).
@@ -111,6 +112,12 @@ public abstract class ClientDriver {
     /// Extracts the client library version from the execution environment, if applicable.
     public abstract Optional<String> extractClientVersion(BaseScriptRunnerCtx ctx, ExecutionEnvironment execEnv);
 
+    /// The [SnapshotsReducer] used to reconcile multiple snapshots recorded for this driver's
+    /// language into one.
+    public SnapshotsReducer snapshotsReducer() {
+        return DefaultSnapshotsReducer.INSTANCE;
+    }
+
     protected final void replaceArtifactPlaceholder(ExecutionEnvironment execEnv, String file) {
         val path = execEnv.envDir().resolve(file);
 
@@ -119,21 +126,14 @@ public abstract class ClientDriver {
             val updatedContent = content.replace("${CLIENT_ARTIFACT}", artifact());
             Files.writeString(path, updatedContent);
         } catch (Exception e) {
-            throw new RunException("Failed to update " + file + " with client version", e);
+            throw new CliException("Failed to update " + file + " with client version", e);
         }
     }
 
     protected final String artifact() {
         if (artifact == null) {
-            throw new RunException("Attempted to access artifact for driver that does not use one: " + language() + ". Did *someone* forget to set a default artifact in ClientLanguage?");
+            throw new CliException("Attempted to access artifact for driver that does not use one: " + language() + ". Did *someone* forget to set a default artifact in ClientLanguage?");
         }
         return artifact;
-    }
-
-    public static class Completions implements Iterable<String> {
-        @Override
-        public @NotNull Iterator<String> iterator() {
-            return new ArrayList<>(ClientLanguage.names()) {{ add("all"); }}.stream().map(String::toLowerCase).iterator();
-        }
     }
 }

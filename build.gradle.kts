@@ -39,6 +39,16 @@ dependencies {
 
     // no idea what this is :)
     implementation("com.datastax.astra:astra-db-java:2.1.4")
+
+    // architecture boundary tests
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {

@@ -20,6 +20,6 @@ public class CleanCtx extends BaseConnectedCtx {
         super(args, spec, ConnectionInfo.fromFlags(spec.commandLine(), args));
         this.dropKeyspaces = args.$dropKeyspaces;
         this.keepKeyspaces = args.$keepKeyspaces;
-        this.yes = args.$yes;
+        this.yes = args.$yes.unwrap();
     }
 }

@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestPlan;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment;
@@ -11,17 +11,17 @@ import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
 import lombok.val;
 
 public class TestRunner {
-    private final TestCtx ctx;
+    private final DocsTestCtx ctx;
     private final ExternalProgram tsx;
     private final TestPlan plan;
 
-    private TestRunner(TestCtx ctx, TestPlan plan) {
+    private TestRunner(DocsTestCtx ctx, TestPlan plan) {
         this.ctx = ctx;
         this.tsx = ExternalPrograms.tsx(ctx);
         this.plan = plan;
     }
 
-    public static boolean runTests(TestCtx ctx, TestPlan plan) {
+    public static boolean runTests(DocsTestCtx ctx, TestPlan plan) {
         val ok = new TestRunner(ctx, plan).runAllTests();
 
         if (!ok) {

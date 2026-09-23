@@ -1,6 +1,7 @@
 package com.dtsx.dh.lib;
 
 import com.dtsx.dh.config.ctx.BaseCtx;
+import com.dtsx.dh.core.common.CliException;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.apache.commons.lang3.ArrayUtils;
@@ -12,8 +13,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import static com.dtsx.dh.lib.ExternalPrograms.ExternalProgramType.*;
 
@@ -80,6 +83,20 @@ public class ExternalPrograms {
         return get(GO, ctx);
     }
 
+    /// Returns a git executor (default: `git`).
+    ///
+    /// Used to clone client repos for `dh clients test`.
+    public static ExternalProgram git(BaseCtx ctx) {
+        return get(GIT, ctx);
+    }
+
+    /// Returns a node executor (default: `node`).
+    ///
+    /// Used to run the TypeScript toolchain.
+    public static ExternalProgram node(BaseCtx ctx) {
+        return get(NODE, ctx);
+    }
+
     /// Returns a custom executor with no default command.
     ///
     /// Useful for calling definitely-available scripts (such as `./.gradlew`)
@@ -88,25 +105,64 @@ public class ExternalPrograms {
     }
 
     private static ExternalProgram get(ExternalProgramType type, BaseCtx ctx) {
-        return new ExternalProgram(type.name().toLowerCase(), ctx.commandOverrides().getOrDefault(type, type.defaultCommand()), Optional.of(type.existsCheckArg));
+        return new ExternalProgram(
+            type.name().toLowerCase(),
+            ctx.commandOverrides().getOrDefault(type, type.defaultCommand()),
+            Optional.of(type.existsCheckArg),
+            Optional.ofNullable(type.versionRequirement)
+        );
     }
+
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
+
+    /// Builds a [VersionRequirement] matching output containing a `major.minor[.patch]` version at
+    /// least as high as the one given (the first such pattern found in the output, e.g. within
+    /// `go version go1.23.4 darwin/arm64`).
+    private static VersionRequirement minVersion(int minMajor, int minMinor, int minPatch) {
+        Predicate<String> predicate = (output) -> {
+            val matcher = VERSION_PATTERN.matcher(output);
+
+            if (!matcher.find()) {
+                return false;
+            }
+
+            val major = Integer.parseInt(matcher.group(1));
+            val minor = Integer.parseInt(matcher.group(2));
+            val patch = (matcher.group(3) != null) ? Integer.parseInt(matcher.group(3)) : 0;
+
+            if (major != minMajor) return major > minMajor;
+            if (minor != minMinor) return minor > minMinor;
+            return patch >= minPatch;
+        };
+
+        return new VersionRequirement(predicate, minMajor + "." + minMinor + "." + minPatch);
+    }
+
+    /// A version floor checked against an exists-check's output, paired with a human-readable
+    /// description of that floor (e.g. `1.23.0`) for error messages.
+    public record VersionRequirement(Predicate<String> predicate, String describe) {}
 
     /// Enum of external programs with their default commands.
     ///
     /// Each can be overridden via `<NAME>_COMMAND` env var (e.g., `TSX_COMMAND=bun tsx`).
     @RequiredArgsConstructor
     public enum ExternalProgramType {
-        TSX("npx -y tsx", "--version"),
-        NPM("npm", "--version"),
-        BASH("bash", "--version"),
-        PYTHON("python3", "--version"),
-        JAVA("java", "--version"),
-        DOTNET("dotnet", "--version"),
-        JQ("jq", "--version"),
-        GO("go", "version");
+        TSX("npx -y tsx", "--version", null),
+        NPM("npm", "--version", null),
+        BASH("bash", "--version", null),
+        PYTHON("python3", "--version", minVersion(3, 10, 0)),
+        JAVA("java", "--version", minVersion(17, 0, 0)),
+        DOTNET("dotnet", "--version", null),
+        JQ("jq", "--version", null),
+        GO("go", "version", minVersion(1, 23, 0)),
+        GIT("git", "--version", null),
+        NODE("node", "--version", minVersion(18, 0, 0));
 
         private final String defaultCommand;
         private final String existsCheckArg;
+
+        /// Version floor checked against the exists-check output, or `null` to only check presence.
+        private final @Nullable VersionRequirement versionRequirement;
 
         public String[] defaultCommand() {
             return defaultCommand.split(" ");
@@ -179,7 +235,11 @@ public class ExternalPrograms {
     /// val tsx = ExternalPrograms.tsx(ctx);
     /// val result = tsx.run(Path.of("/tmp"), "script.ts", "--verbose");
     /// ```
-    public record ExternalProgram(String name, String[] cmd, Optional<String> existsCheckArg) {
+    public record ExternalProgram(String name, String[] cmd, Optional<String> existsCheckArg, Optional<VersionRequirement> versionRequirement) {
+        public ExternalProgram(String name, String[] cmd, Optional<String> existsCheckArg) {
+            this(name, cmd, existsCheckArg, Optional.empty());
+        }
+
         /// Runs the program with the given arguments in the current directory.
         ///
         /// Standard placeholder env vars (`API_ENDPOINT`, `ASTRA_TOKEN`, etc.) are automatically injected.
@@ -210,13 +270,30 @@ public class ExternalPrograms {
         /// @param args command-line arguments to pass to the program
         /// @return the result containing exit code and output
         public RunResult run(@Nullable Path workingDir, @Nullable Map<String, String> envVars, String... args) {
+            return run(workingDir, envVars, null, args);
+        }
+
+        /// Runs the program with the given arguments in a specific directory and environment
+        /// variables, invoking `onLine` for each line of output as it arrives.
+        ///
+        /// `onLine` is called from both the stdout- and stderr-reading threads, potentially
+        /// concurrently, so it must be thread-safe.
+        ///
+        /// Standard placeholder env vars (`API_ENDPOINT`, `ASTRA_TOKEN`, etc.) are automatically injected.
+        ///
+        /// @param workingDir the working directory (null for current directory)
+        /// @param envVars additional environment variables to set (null for nne)
+        /// @param onLine called for each line of output as it is produced (null to skip)
+        /// @param args command-line arguments to pass to the program
+        /// @return the result containing exit code and output
+        public RunResult run(@Nullable Path workingDir, @Nullable Map<String, String> envVars, @Nullable Consumer<OutputLine> onLine, String... args) {
             try {
                 val process = startProcess(workingDir, ArrayUtils.addAll(cmd, args), envVars);
 
                 val outputLines = Collections.synchronizedList(new ArrayList<OutputLine>());
 
-                val stdoutReaderThread = Thread.startVirtualThread(mkStreamReader(process.getInputStream(), outputLines, StdoutLine::new));
-                val stderrReaderThread = Thread.startVirtualThread(mkStreamReader(process.getErrorStream(), outputLines, StderrLine::new));
+                val stdoutReaderThread = Thread.startVirtualThread(mkStreamReader(process.getInputStream(), outputLines, StdoutLine::new, onLine));
+                val stderrReaderThread = Thread.startVirtualThread(mkStreamReader(process.getErrorStream(), outputLines, StderrLine::new, onLine));
 
                 val exitCode = process.waitFor();
 
@@ -231,23 +308,51 @@ public class ExternalPrograms {
             }
         }
 
-        /// Checks if the program exists and is executable by running `<program> --version`.
+        /// Runs the program with the given arguments in a specific directory, throwing a
+        /// [CliException] naming the program, its args and its output if the exit code is non-zero.
         ///
-        /// @return true if the program executed successfully, false otherwise
-        public boolean exists() {
-            if (existsCheckArg.isEmpty()) {
-                return true; // just assume it exists Ig
+        /// @param workingDir the working directory (null for current directory)
+        /// @param args command-line arguments to pass to the program
+        /// @return the result containing exit code and output
+        public RunResult runOrThrow(@Nullable Path workingDir, String... args) {
+            val result = run(workingDir, args);
+
+            if (result.notOk()) {
+                throw new CliException(name + " " + String.join(" ", args) + " failed:\n" + result.output());
             }
 
-            try {
-                val process = startProcess(null, ArrayUtils.addAll(cmd, existsCheckArg.get()), null);
-                val exitCode = process.waitFor();
-                return exitCode == 0;
-            } catch (IOException | InterruptedException e) {
-                CliLogger.exception(e);
-                Thread.currentThread().interrupt();
-                return false;
+            return result;
+        }
+
+        /// Runs the program with the given arguments in the current directory, throwing a
+        /// [CliException] naming the program, its args and its output if the exit code is non-zero.
+        ///
+        /// @param args command-line arguments to pass to the program
+        /// @return the result containing exit code and output
+        public RunResult runOrThrow(String... args) {
+            return runOrThrow(null, args);
+        }
+
+        /// Checks whether the program exists, is executable, and (when [#versionRequirement] is
+        /// present) meets its version floor, by running `<program> <existsCheckArg>` and inspecting
+        /// its output.
+        ///
+        /// @return empty if the program is usable, otherwise a short lower-case phrase describing
+        /// the failure
+        public Optional<String> problem() {
+            if (existsCheckArg.isEmpty()) {
+                return Optional.empty();
             }
+
+            val result = run(existsCheckArg.get());
+
+            if (result.notOk()) {
+                return Optional.of("could not be found");
+            }
+
+            return versionRequirement
+                .filter((req) -> !req.predicate().test(result.output()))
+                .map((req) -> "requires version >= " + req.describe());
         }
 
         /// Returns the environment variable name used to override this program's command.
@@ -273,12 +378,16 @@ public class ExternalPrograms {
             return pb.start();
         }
 
-        private Runnable mkStreamReader(InputStream stream, List<OutputLine> outputLines, Function<String, OutputLine> mapper) {
+        private Runnable mkStreamReader(InputStream stream, List<OutputLine> outputLines, Function<String, OutputLine> mapper, @Nullable Consumer<OutputLine> onLine) {
             return () -> {
                 try (val reader = new BufferedReader(new InputStreamReader(stream))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        outputLines.add(mapper.apply(line + System.lineSeparator()));
+                        val outputLine = mapper.apply(line + System.lineSeparator());
+                        outputLines.add(outputLine);
+                        if (onLine != null) {
+                            onLine.accept(outputLine);
+                        }
                     }
                 } catch (IOException ignored) {}
             };

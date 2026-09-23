@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.strategies.test;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.fixtures.BaseFixturePool;
 import com.dtsx.dh.core.docs.planner.meta.compiles.CompilesTestMeta;
@@ -29,7 +29,7 @@ import static com.dtsx.dh.core.docs.runner.tests.VerifyMode.DRY_RUN;
 import static com.dtsx.dh.core.docs.runner.tests.VerifyMode.NO_COMPILE_ONLY;
 
 public final class CompilesTestStrategy extends TestStrategy<CompilesTestMeta> {
-    public CompilesTestStrategy(TestCtx ctx, CompilesTestMeta m) {
+    public CompilesTestStrategy(DocsTestCtx ctx, CompilesTestMeta m) {
         super(ctx, m);
     }
 

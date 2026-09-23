@@ -6,7 +6,7 @@ import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.OutputJsonifySourceMeta;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifierFlags;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifiers;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms;
@@ -35,7 +35,7 @@ public class TypeScriptDriver extends ClientDriver {
 
     @Override
     public List<Function<BaseCtx, ExternalProgram>> requiredPrograms() {
-        return List.of(ExternalPrograms::npm, ExternalPrograms::tsx);
+        return List.of(ExternalPrograms::node, ExternalPrograms::npm, ExternalPrograms::tsx);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class TypeScriptDriver extends ClientDriver {
         val res = ExternalPrograms.npm(ctx).run(execEnv.envDir(), "install", artifact());
 
         if (res.exitCode() != 0) {
-            throw new RunException("Failed to setup TypeScript environment: " + res.output());
+            throw new CliException("Failed to setup TypeScript environment: " + res.output());
         }
 
         return execEnv.envDir().resolve("example.ts");
@@ -104,9 +104,9 @@ public class TypeScriptDriver extends ClientDriver {
                 val version = packages.get("node_modules/@datastax/astra-db-ts").get("version").asString();
                 return Optional.of("v" + version);
             }
-            throw new RunException("Could not find @datastax/astra-db-ts in package-lock.json");
+            throw new CliException("Could not find @datastax/astra-db-ts in package-lock.json");
         } catch (Exception e) {
-            throw new RunException("Failed to extract TypeScript client version from package-lock.json", e);
+            throw new CliException("Failed to extract TypeScript client version from package-lock.json", e);
         }
     }
 }

@@ -5,9 +5,11 @@ import com.dtsx.dh.config.ctx.BaseScriptRunnerCtx;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.OutputJsonifySourceMeta;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifierFlags;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.common.ClientLanguage;
+import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.CSharpSnapshotsReducer;
+import com.dtsx.dh.core.docs.runner.tests.snapshots.reducers.SnapshotsReducer;
 import com.dtsx.dh.lib.ExternalPrograms;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
 import com.dtsx.dh.lib.ExternalPrograms.RunResult;
@@ -44,7 +46,7 @@ public class CSharpDriver extends ClientDriver {
 
         val restore = dotnet.run(execEnv.envDir(), "restore");
         if (restore.notOk()) {
-            throw new RunException("Failed to restore C# dependencies:\n" + restore.output());
+            throw new CliException("Failed to restore C# dependencies:\n" + restore.output());
         }
 
         return execEnv.envDir().resolve("Example.cs");
@@ -55,13 +57,13 @@ public class CSharpDriver extends ClientDriver {
         val mainIndex = content.indexOf("Main(");
 
         if (mainIndex == -1) {
-            throw new RunException("Main method not found in C# script");
+            throw new CliException("Main method not found in C# script");
         }
 
         val classIndex = content.lastIndexOf("\npublic class ", mainIndex);
 
         if (classIndex == -1) {
-            throw new RunException("Public class declaration not found before Main method in C# script");
+            throw new CliException("Public class declaration not found before Main method in C# script");
         }
 
         val nameStart = classIndex + "\npublic class ".length();
@@ -96,7 +98,7 @@ public class CSharpDriver extends ClientDriver {
         val result = ExternalPrograms.dotnet(ctx).run(execEnv.envDir(), "list", "package", "--format", "json");
         
         if (result.notOk()) {
-            throw new RunException("Failed to extract C# client version: " + result.output());
+            throw new CliException("Failed to extract C# client version: " + result.output());
         }
 
         try {
@@ -113,5 +115,10 @@ public class CSharpDriver extends ClientDriver {
         }
 
         return Optional.of("unknown");
+    }
+
+    @Override
+    public SnapshotsReducer snapshotsReducer() {
+        return CSharpSnapshotsReducer.INSTANCE;
     }
 }

@@ -1,5 +1,6 @@
 package com.dtsx.dh;
 
+import com.dtsx.dh.commands.clients.ClientsCmd;
 import com.dtsx.dh.commands.completions.CompgenCmd;
 import com.dtsx.dh.commands.db.DbCmd;
 import com.dtsx.dh.commands.docs.DocsCmd;
@@ -27,6 +28,7 @@ import static com.dtsx.dh.lib.ColorUtils.ACCENT_COLOR;
     mixinStandardHelpOptions = true,
     subcommands = {
         DocsCmd.class,
+        ClientsCmd.class,
         CompgenCmd.class,
         LogsCmd.class,
         StartgateCmd.class,
@@ -40,8 +42,8 @@ public class HelperCli {
     /// selects them (e.g. `dh docs test ...` -> scope `docs`). Matched anywhere in the args rather
     /// than at position 0, so it keeps working if the root command ever grows options of its own.
     ///
-    /// Adding a new scope (e.g. `clients`, `db`) is a one-line change here.
-    private static final Set<String> ENV_SCOPES = Set.of("docs");
+    /// Adding a new scope (e.g. `db`) is a one-line change here.
+    private static final Set<String> ENV_SCOPES = Set.of("docs", "clients");
 
     @SuppressWarnings("UnnecessaryModifier")
     public static void main(String[] args) {
@@ -70,7 +72,8 @@ public class HelperCli {
     /// Loads `.env.common`, then `.env.<scope>` (if any CLI arg names a known scope),
     /// from both `./` and `CLI_DIR`.
     ///
-    /// A bare `.env`, if present, is loaded as though it were `.env.common`, with a deprecation warning.
+    /// A bare `.env`, if present, is ignored, with a warning, since it may belong to something else
+    /// entirely.
     ///
     /// Values are applied as system properties (which is what `${VAR}` defaultValue expressions
     /// resolve against) and only for keys the real environment doesn't already define, so a stale
@@ -91,8 +94,7 @@ public class HelperCli {
             if (Files.isRegularFile(bareEnvFile)) {
                 // stderr, not CliLogger: `dh compgen`'s stdout gets `source`d by scripts/dev-alias.sh,
                 // so anything printed there has to be a valid shell script.
-                System.err.println("[WARN] Found a bare `.env` file at `" + bareEnvFile + "` - please rename it to `.env.common`. Loading it as `.env.common` for now.");
-                applyDotenvFile(bareEnvFile);
+                System.err.println("[WARN] Found a bare `.env` file at `" + bareEnvFile + "` - it is ignored; please rename it to `.env.common`.");
             }
 
             applyDotenvFile(dir.resolve(".env.common"));

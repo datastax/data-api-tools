@@ -1,6 +1,5 @@
 package com.dtsx.dh.commands.docs.test;
 
-import com.dtsx.dh.config.ArgUtils;
 import com.dtsx.dh.config.ctx.BaseCtx;
 import com.dtsx.dh.config.ctx.BaseScriptRunnerCtx;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
@@ -15,7 +14,6 @@ import lombok.val;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.ParameterException;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -28,15 +26,15 @@ import static com.dtsx.dh.core.docs.runner.tests.VerifyMode.DRY_RUN;
 ///
 /// The runtime context for the verifier, containing all configuration and dependencies needed to run tests.
 ///
-/// Built from [TestArgs] via `args.toCtx(spec)`, this validates everything is set up correctly:
+/// Built from [DocsTestArgs] via `args.toCtx(spec)`, this validates everything is set up correctly:
 /// - Database connection info (token + endpoint)
 /// - Examples folder exists with required `_base/` and `_fixtures/` subdirectories
 /// - All required external programs are installed (tsx, npm, language-specific tools)
 /// - Client drivers are configured with correct artifact versions
 ///
-/// @see TestArgs
+/// @see DocsTestArgs
 @Getter
-public class TestCtx extends BaseScriptRunnerCtx {
+public class DocsTestCtx extends BaseScriptRunnerCtx {
     @Getter(AccessLevel.NONE)
     private final Map<ClientLanguage, ClientDriver> drivers;
 
@@ -57,7 +55,7 @@ public class TestCtx extends BaseScriptRunnerCtx {
         return new ArrayList<>(drivers.keySet());
     }
 
-    public TestCtx(TestArgs args, CommandSpec spec) {
+    public DocsTestCtx(DocsTestArgs args, CommandSpec spec) {
         super(args, spec);
         this.drivers = mkDrivers(cmd, args);
         this.reporter = args.$reporter.create(this);
@@ -78,21 +76,10 @@ public class TestCtx extends BaseScriptRunnerCtx {
         }};
     }
 
-    private Map<ClientLanguage, ClientDriver> mkDrivers(CommandLine cmd, TestArgs args) {
-        if (args.$drivers == null || args.$drivers.isEmpty()) {
-            throw new ParameterException(cmd, "Must provide at least one client driver (or 'all') to run tests against. Use `-h` for help instead.");
-        }
-
-        ArgUtils.requireParameter(cmd, args.$drivers.stream().findFirst(), "client driver", 1, "CLIENT_DRIVER");
-
+    private Map<ClientLanguage, ClientDriver> mkDrivers(CommandLine cmd, DocsTestArgs args) {
         val driversMap = new HashMap<ClientLanguage, ClientDriver>();
 
-        if (args.$drivers.stream().allMatch("all"::equalsIgnoreCase)) {
-            args.$drivers = ClientLanguage.names();
-        }
-
-        for (val langStr : args.$drivers) {
-            val lang = parseClientLanguage(cmd, langStr);
+        for (val lang : args.$drivers.resolve()) {
             val driver = mkDriverForLanguage(cmd, lang, args);
             driversMap.put(lang, driver);
         }
@@ -100,21 +87,13 @@ public class TestCtx extends BaseScriptRunnerCtx {
         return driversMap;
     }
 
-    private ClientLanguage parseClientLanguage(CommandLine cmd, String langStr) {
-        try {
-            return ClientLanguage.valueOf(langStr.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            throw new ParameterException(cmd, "Invalid client language: " + langStr + ". Expected one of: " + String.join(", ", ClientLanguage.names()));
-        }
-    }
-
-    private VerifyMode resolveVerifyMode(TestArgs args) {
+    private VerifyMode resolveVerifyMode(DocsTestArgs args) {
         return (args.$dryRun)
             ? DRY_RUN
             : args.$verifyMode;
     }
 
-    private Predicate<Path> mkFilter(TestArgs args) {
+    private Predicate<Path> mkFilter(DocsTestArgs args) {
         val includePredicate = mkFilterPredicates(args.$filters, args.$fand)
             .orElse(_ -> true);
 

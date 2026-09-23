@@ -2,8 +2,8 @@ package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.records;
 
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
-import com.dtsx.dh.commands.docs.test.TestCtx;
-import com.dtsx.dh.core.docs.planner.PlanException;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMetaRep;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.RecordSourceMeta;
@@ -78,7 +78,7 @@ public abstract class RecordSource extends SnapshotSource {
 
                 switch (sliceValue) {
                     case null -> {
-                        throw new PlanException("The projection operator map for field '" + field + "' must contain a '$slice' key");
+                        throw new CliException("The projection operator map for field '" + field + "' must contain a '$slice' key");
                     }
                     case Integer start -> {
                         projections.add(Projection.slice(field, start, null));
@@ -87,15 +87,15 @@ public abstract class RecordSource extends SnapshotSource {
                         if (list.get(0) instanceof Integer start && list.get(1) instanceof Integer end) {
                             projections.add(Projection.slice(field, start, end));
                         } else {
-                            throw new PlanException("The '$slice' values must be integers");
+                            throw new CliException("The '$slice' values must be integers");
                         }
                     }
                     default -> {
-                        throw new PlanException("The '$slice' value must be an integer or a list of two integers");
+                        throw new CliException("The '$slice' value must be an integer or a list of two integers");
                     }
                 }
             } else {
-                throw new PlanException("The projection value for field '" + field + "' must be 1, 0, true, false, or a valid $slice map");
+                throw new CliException("The projection value for field '" + field + "' must be 1, 0, true, false, or a valid $slice map");
             }
         }
 
@@ -103,10 +103,10 @@ public abstract class RecordSource extends SnapshotSource {
     }
 
     protected abstract Optional<String> extractSchemaObjectName(Placeholders placeholders);
-    protected abstract Stream<Map<String, Object>> streamRecords(TestCtx ctx, String name, String keyspace);
+    protected abstract Stream<Map<String, Object>> streamRecords(DocsTestCtx ctx, String name, String keyspace);
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         val schemaObjName = resolveName("schema object name", md, driver, overrideName, () -> extractSchemaObjectName(md));
         val schemaObjKeyspace = resolveName("keyspace", md, driver, overrideKeyspace, () -> Optional.of(md.keyspaceName()));
 

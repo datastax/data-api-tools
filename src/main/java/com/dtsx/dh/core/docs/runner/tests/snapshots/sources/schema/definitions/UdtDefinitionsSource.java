@@ -3,7 +3,7 @@ package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.schema.definitions;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.tables.commands.options.ListTypesOptions;
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.UdtDefinitionSourceMeta;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
@@ -33,7 +33,7 @@ public class UdtDefinitionsSource extends SnapshotSource {
     record TypeDescriptor(String udtName, Object definition) {}
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         val database = DataAPIUtils.getDatabase(
             ctx.connectionInfo(),
             overrideKeyspace.orElse(md.keyspaceName())

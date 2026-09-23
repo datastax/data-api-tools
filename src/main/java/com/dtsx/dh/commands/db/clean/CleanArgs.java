@@ -1,7 +1,9 @@
 package com.dtsx.dh.commands.db.clean;
 
 import com.dtsx.dh.config.args.BaseConnectedArgs;
+import com.dtsx.dh.config.args.mixins.YesMixin;
 import lombok.ToString;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 
@@ -23,11 +25,8 @@ public class CleanArgs extends BaseConnectedArgs<CleanCtx> {
     )
     public List<String> $keepKeyspaces = List.of();
 
-    @Option(
-        names = { "-y", "--yes" },
-        description = "Actually perform the operation. Without this, prints the plan and exits."
-    )
-    public boolean $yes;
+    @Mixin
+    public YesMixin $yes;
 
     @Override
     public CleanCtx toCtx(CommandSpec spec) {

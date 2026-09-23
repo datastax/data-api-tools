@@ -13,11 +13,9 @@ import picocli.CommandLine.Mixin;
     name = "test",
     description = "Run script files and verify them."
 )
-public class TestCmd extends BaseCmd<TestCtx> {
+public class DocsTestCmd extends BaseCmd<DocsTestCtx> {
     @Mixin @Getter
-    private TestArgs $args;
-
-    private static final int EXIT_CODE_TESTS_FAILED = 100;
+    private DocsTestArgs $args;
 
     @Override
     public int run() {

@@ -1,26 +1,20 @@
 package com.dtsx.dh.commands.docs.test;
 
 import com.dtsx.dh.config.args.BaseScriptRunnerArgs;
-import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
+import com.dtsx.dh.config.args.mixins.DriversMixin;
 import com.dtsx.dh.core.docs.runner.tests.VerifyMode;
 import com.dtsx.dh.core.docs.runner.tests.reporter.TestReporters;
 import lombok.ToString;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 import java.util.List;
 
 @ToString
-public class TestArgs extends BaseScriptRunnerArgs<TestCtx> {
-    @Parameters(
-        description = "Client drivers to use (e.g., 'java', 'typescript').",
-        defaultValue = "${CLIENT_DRIVERS}",
-        completionCandidates = ClientDriver.Completions.class,
-        paramLabel = "DRIVER",
-        split = ","
-    )
-    public List<String> $drivers;
+public class DocsTestArgs extends BaseScriptRunnerArgs<DocsTestCtx> {
+    @Mixin
+    public DriversMixin $drivers = DriversMixin.exclude();
 
     @Option(
         names = { "-r", "--test-reporter" },
@@ -77,7 +71,7 @@ public class TestArgs extends BaseScriptRunnerArgs<TestCtx> {
     public int $maxFixtureInstances;
 
     @Override
-    public TestCtx toCtx(CommandSpec spec) {
-        return new TestCtx(this, spec);
+    public DocsTestCtx toCtx(CommandSpec spec) {
+        return new DocsTestCtx(this, spec);
     }
 }

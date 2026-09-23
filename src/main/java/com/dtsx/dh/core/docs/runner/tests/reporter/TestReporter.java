@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.reporter;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestPlan;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
@@ -38,7 +38,7 @@ import static java.util.stream.Collectors.joining;
 /// @see OnlyFailuresReporter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class TestReporter {
-    protected final TestCtx ctx;
+    protected final DocsTestCtx ctx;
 
     /// Prints the header at the start of test execution.
     ///

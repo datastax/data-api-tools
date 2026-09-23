@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.strategies.test;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.fixtures.BaseFixturePool;
 import com.dtsx.dh.core.docs.planner.meta.BaseMetaYml;
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public sealed abstract class TestStrategy<M extends BaseMetaYml> permits CompilesTestStrategy, SnapshotTestStrategy {
-    protected final TestCtx ctx;
+    protected final DocsTestCtx ctx;
     protected final M meta;
 
     public M meta() {

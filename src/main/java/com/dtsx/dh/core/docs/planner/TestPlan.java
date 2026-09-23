@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.planner;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.BaseFixturePool;
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.ExecutionMode;
@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
 
 @RequiredArgsConstructor
 public class TestPlan {
-    private final TestCtx ctx;
+    private final DocsTestCtx ctx;
     private final SortedMap<BaseFixturePool, SortedSet<TestRoot>> plan;
     private final Set<ClientLanguage> usedLanguages;
 
@@ -54,7 +54,7 @@ public class TestPlan {
             updateMaxNeededFixtures(info, testRoot);
         }
 
-        public TestPlan build(TestCtx ctx) {
+        public TestPlan build(DocsTestCtx ctx) {
             val plan = new TreeMap<BaseFixturePool, SortedSet<TestRoot>>();
 
             for (val entry : poolInfos.entrySet()) {

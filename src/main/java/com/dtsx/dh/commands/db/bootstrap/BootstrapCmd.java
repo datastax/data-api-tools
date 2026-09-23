@@ -3,6 +3,7 @@ package com.dtsx.dh.commands.db.bootstrap;
 import com.dtsx.dh.commands.BaseCmd;
 import com.dtsx.dh.lib.CliLogger;
 import com.dtsx.dh.lib.DataAPIUtils;
+import com.dtsx.dh.lib.KeyspaceOps;
 import lombok.Getter;
 import lombok.val;
 import picocli.CommandLine.Command;
@@ -41,8 +42,8 @@ public class BootstrapCmd extends BaseCmd<BootstrapCtx> {
                 continue;
             }
 
-            CliLogger.loading("Creating keyspace @!" + ks + "!@...", (update) -> {
-                admin.createKeyspace(ks);
+            CliLogger.loading("Creating keyspace @!" + ks + "!@...", (_) -> {
+                KeyspaceOps.ensureKeyspace(admin, ks, existing);
                 return null;
             });
 

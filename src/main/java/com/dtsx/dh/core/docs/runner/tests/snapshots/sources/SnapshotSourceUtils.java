@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.sources;
 
-import com.dtsx.dh.core.docs.planner.PlanException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.tests.snapshots.verifier.SnapshotVerifier;
 import com.dtsx.dh.lib.ExternalPrograms.RunResult;
 import lombok.experimental.UtilityClass;
@@ -17,7 +17,7 @@ public class SnapshotSourceUtils {
         if (name.startsWith("stderr")) {
             return res.stderr().trim();
         }
-        throw new PlanException("Unexpected output stream: '" + name + "'");
+        throw new CliException("Unexpected output stream: '" + name + "'");
     }
 
     // Sorts records returned by the Data API to ensure deterministic ordering for snapshot comparisons

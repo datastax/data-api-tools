@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.schema.definitions;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.WithNameAndKeyspace;
 import com.dtsx.dh.core.docs.runner.Placeholders;
@@ -25,10 +25,10 @@ public abstract class SchemaObjectDefinitionSource extends SnapshotSource {
     }
 
     protected abstract Optional<String> extractSchemaObjectName(Placeholders placeholders);
-    protected abstract Object getDefinition(TestCtx ctx, String name, String keyspace);
+    protected abstract Object getDefinition(DocsTestCtx ctx, String name, String keyspace);
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         val schemaObjName = resolveName("schema object name", md, driver, overrideName, () -> extractSchemaObjectName(md));
         val schemaObjKeyspace = resolveName("keyspace", md, driver, overrideKeyspace, () -> Optional.of(md.keyspaceName()));
 

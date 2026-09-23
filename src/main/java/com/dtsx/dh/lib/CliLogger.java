@@ -166,6 +166,12 @@ public class CliLogger {
         return ctx.tmpFolder().resolve("logs");
     }
 
+    /// Returns a fresh per-run subdirectory under [#logsDir], named with the current timestamp.
+    public static Path runLogsDir(BaseCtx ctx) {
+        val runTs = DateTimeFormatter.ofPattern("yyyy_MM_dd___HH_mm_ss").format(Instant.now().atZone(ZoneId.systemDefault()));
+        return logsDir(ctx).resolve(runTs);
+    }
+
     /// Returns the absolute path to the log file for this session.
     ///
     /// The log file name is determined at static initialization time.

@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.output;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.OutputMatchesSourceMeta;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
@@ -20,7 +20,7 @@ public class OutputMatchesSource extends SnapshotSource {
     }
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         val output = SnapshotSourceUtils.extractOutput(name, res);
 
         if (regex.matcher(output).matches()) {

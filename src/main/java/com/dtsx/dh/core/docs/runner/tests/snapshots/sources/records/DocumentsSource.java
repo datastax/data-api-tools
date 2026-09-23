@@ -2,7 +2,7 @@ package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.records;
 
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.RecordSourceMeta.DocumentsSourceMeta;
 import com.dtsx.dh.core.docs.runner.Placeholders;
 import com.dtsx.dh.lib.DataAPIUtils;
@@ -24,7 +24,7 @@ public final class DocumentsSource extends RecordSource {
     }
 
     @Override
-    public Stream<Map<String, Object>> streamRecords(TestCtx ctx, String name, String keyspace) {
+    public Stream<Map<String, Object>> streamRecords(DocsTestCtx ctx, String name, String keyspace) {
         val collection = DataAPIUtils.getCollection(ctx.connectionInfo(), name, keyspace);
 
         val options = new CollectionFindOptions();

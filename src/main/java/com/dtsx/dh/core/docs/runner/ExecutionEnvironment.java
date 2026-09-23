@@ -2,6 +2,7 @@ package com.dtsx.dh.core.docs.runner;
 
 import com.dtsx.dh.config.ctx.BaseScriptRunnerCtx;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.lib.CliLogger;
 import com.dtsx.dh.lib.CliLogger.MessageUpdater;
 import lombok.*;
@@ -160,7 +161,7 @@ public class ExecutionEnvironment {
                 Files.createDirectories(rootFolder);
                 return rootFolder;
             } catch (Exception e) {
-                throw new RunException("Failed to create execution environments root folder", e);
+                throw new CliException("Failed to create execution environments root folder", e);
             }
         }
 
@@ -193,7 +194,7 @@ public class ExecutionEnvironment {
                         PathUtils.copyDirectory(srcExecEnv, destExecEnv);
                     }
                 } catch (Exception e) {
-                    throw new RunException("Failed to setup " + languageName + " execution environment", e);
+                    throw new CliException("Failed to setup " + languageName + " execution environment", e);
                 }
 
                 val testFileCopyPath = driver.setupExecutionEnvironment(ctx, execEnv);
@@ -232,7 +233,7 @@ public class ExecutionEnvironment {
 
                 return !destFiles.containsAll(srcFiles);
             } catch (Exception e) {
-                throw new RunException("Failed to check if execution environment needs cleaning", e);
+                throw new CliException("Failed to check if execution environment needs cleaning", e);
             }
         }
     }

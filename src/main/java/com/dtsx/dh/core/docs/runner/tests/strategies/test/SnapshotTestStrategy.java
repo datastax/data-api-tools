@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.runner.tests.strategies.test;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.fixtures.BaseFixturePool;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
@@ -27,7 +27,7 @@ import java.util.Set;
 
 @Getter
 public final class SnapshotTestStrategy extends TestStrategy<SnapshotTestMeta> {
-    public SnapshotTestStrategy(TestCtx ctx, SnapshotTestMeta meta) {
+    public SnapshotTestStrategy(DocsTestCtx ctx, SnapshotTestMeta meta) {
         super(ctx, meta);
     }
 

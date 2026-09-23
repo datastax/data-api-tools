@@ -1,10 +1,10 @@
 package com.dtsx.dh.core.docs.planner.fixtures;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.TestRoot;
 import com.dtsx.dh.core.docs.planner.fixtures.BaseFixturePool.FixtureIndex;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMetaRep;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.CliLogger;
 import com.dtsx.dh.lib.ExternalPrograms;
@@ -76,7 +76,7 @@ public sealed abstract class JSFixture implements Comparable<JSFixture> permits 
     public abstract void afterEach(ExternalProgram tsx, FixtureMetadata md, @Nullable ClientLanguage lang);
     public abstract void teardown(ExternalProgram tsx, FixtureMetadata md);
 
-    public static void installDependencies(TestCtx ctx) {
+    public static void installDependencies(DocsTestCtx ctx) {
         CliLogger.debug("Installing JSFixture dependencies in " + Path.of(".").toAbsolutePath());
 
         val res = CliLogger.loading("Installing JS fixture dependencies", (_) -> {
@@ -84,7 +84,7 @@ public sealed abstract class JSFixture implements Comparable<JSFixture> permits 
         });
 
         if (res.exitCode() != 0) {
-            throw new RunException("Failed to install JS fixture dependencies: " + res.output());
+            throw new CliException("Failed to install JS fixture dependencies: " + res.output());
         }
     }
 

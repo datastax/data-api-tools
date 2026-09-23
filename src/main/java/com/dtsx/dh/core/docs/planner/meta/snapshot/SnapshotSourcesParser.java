@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.planner.meta.snapshot;
 
-import com.dtsx.dh.core.docs.planner.PlanException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.SnapshotTestMetaRep.SnapshotsConfig;
 import com.dtsx.dh.core.docs.runner.tests.snapshots.sources.SnapshotSource;
 import com.dtsx.dh.core.docs.runner.tests.snapshots.sources.output.OutputCaptureSource;
@@ -60,7 +60,7 @@ public class SnapshotSourcesParser {
             val parser = PARSERS.get(source);
 
             if (parser == null) {
-                throw new PlanException("Unknown snapshot source type: " + source);
+                throw new CliException("Unknown snapshot source type: " + source);
             }
 
             sources.add(parser.apply(source, params));

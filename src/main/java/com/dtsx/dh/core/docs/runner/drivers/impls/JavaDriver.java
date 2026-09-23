@@ -6,7 +6,7 @@ import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.OutputJsonifySourceMeta;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifierFlags;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifiers;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms;
@@ -43,7 +43,7 @@ public class JavaDriver extends ClientDriver {
 
         val build = ExternalPrograms.custom().run(execEnv.envDir(), "./gradlew", "build");
         if (build.notOk()) {
-            throw new RunException("Failed to build Java client:\n" + build.output());
+            throw new CliException("Failed to build Java client:\n" + build.output());
         }
 
         return execEnv.envDir().resolve("src/main/java/Example.java");
@@ -64,7 +64,7 @@ public class JavaDriver extends ClientDriver {
             val mainMethodIdx = content.indexOf(target);
 
             if (mainMethodIdx == -1) {
-                throw new RunException("main method not found");
+                throw new CliException("main method not found");
             }
 
             val insertPos = mainMethodIdx + target.length();
@@ -115,7 +115,7 @@ public class JavaDriver extends ClientDriver {
        val result = ExternalPrograms.custom().run(execEnv.envDir(), "./gradlew", "dependencies", "--configuration", "runtimeClasspath");
 
        if (result.notOk()) {
-           throw new RunException("Failed to extract Java client version: " + result.output());
+           throw new CliException("Failed to extract Java client version: " + result.output());
        }
 
        val output = result.stdout();

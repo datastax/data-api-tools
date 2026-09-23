@@ -1,6 +1,6 @@
 package com.dtsx.dh.core.docs.planner.meta;
 
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.JacksonUtils;
 import lombok.AccessLevel;
@@ -18,7 +18,7 @@ import static java.util.stream.Collectors.toMap;
 public abstract class PerLanguageToggle<E> {
     protected final Map<ClientLanguage, E> languages;
 
-    public static <T extends PerLanguageToggle<E>, E> T parse(Function<Map<ClientLanguage, E>, T> cons, TestCtx ctx, Optional<Object> maybeRaw, TypeReference<Map<ClientLanguage, E>> elemsType) {
+    public static <T extends PerLanguageToggle<E>, E> T parse(Function<Map<ClientLanguage, E>, T> cons, DocsTestCtx ctx, Optional<Object> maybeRaw, TypeReference<Map<ClientLanguage, E>> elemsType) {
         if (maybeRaw.isEmpty()) {
             return cons.apply(Map.of());
         }

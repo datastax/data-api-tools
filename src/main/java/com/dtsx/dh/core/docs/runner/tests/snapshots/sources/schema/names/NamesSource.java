@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.runner.tests.snapshots.sources.schema.names;
 
 import com.datastax.astra.client.databases.Database;
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.planner.fixtures.FixtureMetadata;
 import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.WithKeyspace;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
@@ -25,7 +25,7 @@ public abstract class NamesSource extends SnapshotSource {
     public abstract List<String> names(Database db, ClientDriver driver, FixtureMetadata md);
 
     @Override
-    public String mkSnapshotImpl(TestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
+    public String mkSnapshotImpl(DocsTestCtx ctx, ClientDriver driver, RunResult res, FixtureMetadata md) {
         val db = DataAPIUtils.getDatabase(
             ctx.connectionInfo(),
             this.keyspace.orElse(md.keyspaceName())

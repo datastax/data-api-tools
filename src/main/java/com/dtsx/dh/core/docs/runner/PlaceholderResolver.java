@@ -2,6 +2,7 @@ package com.dtsx.dh.core.docs.runner;
 
 import com.dtsx.dh.config.ctx.BaseScriptRunnerCtx;
 import com.dtsx.dh.core.common.ClientLanguage;
+import com.dtsx.dh.core.common.CliException;
 import lombok.val;
 import org.apache.commons.lang3.function.TriFunction;
 
@@ -50,12 +51,12 @@ public class PlaceholderResolver {
             val key = m.group(1);
 
             if (DYNAMIC_PLACEHOLDERS.containsKey(key)) {
-                val value = DYNAMIC_PLACEHOLDERS.get(key).apply(ctx, placeholders, Optional.of(lang)).orElseThrow(() -> new RunException("Missing value for placeholder: **" + key + "**"));
+                val value = DYNAMIC_PLACEHOLDERS.get(key).apply(ctx, placeholders, Optional.of(lang)).orElseThrow(() -> new CliException("Missing value for placeholder: **" + key + "**"));
                 m.appendReplacement(out, Matcher.quoteReplacement(value));
             } else if (STATIC_PLACEHOLDERS.containsKey(key)) {
                 m.appendReplacement(out, Matcher.quoteReplacement(STATIC_PLACEHOLDERS.get(key)));
             } else {
-                throw new RunException("Unknown placeholder: **" + key + "**");
+                throw new CliException("Unknown placeholder: **" + key + "**");
             }
         }
 

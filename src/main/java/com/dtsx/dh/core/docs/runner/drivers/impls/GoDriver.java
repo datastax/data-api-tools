@@ -6,7 +6,7 @@ import com.dtsx.dh.core.docs.planner.meta.snapshot.meta.OutputJsonifySourceMeta;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifierFlags;
 import com.dtsx.dh.core.docs.runner.ExecutionEnvironment.TestFileModifiers;
-import com.dtsx.dh.core.docs.runner.RunException;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.docs.runner.drivers.ClientDriver;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms;
@@ -47,7 +47,7 @@ public class GoDriver extends ClientDriver {
         val getClient = go.run(execEnv.envDir(), "get", artifact());
 
         if (getClient.notOk()) {
-            throw new RunException("Failed to get Go client dependency:\n" + getClient.output());
+            throw new CliException("Failed to get Go client dependency:\n" + getClient.output());
         }
 
         return execEnv.envDir().resolve("example.go");
@@ -122,7 +122,7 @@ public class GoDriver extends ClientDriver {
         val result = ExternalPrograms.go(ctx).run(execEnv.envDir(), "list", "-m", "-json", "all");
 
         if (result.notOk()) {
-            throw new RunException("Failed to extract Go client version: " + result.output());
+            throw new CliException("Failed to extract Go client version: " + result.output());
         }
 
         try {

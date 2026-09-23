@@ -1,5 +1,6 @@
 package com.dtsx.dh.config.args;
 
+import com.dtsx.dh.config.args.mixins.BailMixin;
 import com.dtsx.dh.config.args.mixins.ExamplesFolderMixin;
 import com.dtsx.dh.config.ctx.BaseScriptRunnerCtx;
 import com.dtsx.dh.core.common.ClientLanguage;
@@ -26,10 +27,6 @@ public abstract class BaseScriptRunnerArgs<Ctx extends BaseScriptRunnerCtx> exte
     )
     public boolean $clean;
 
-    @Option(
-        names = { "-b", "--bail" },
-        description = "Whether to stop execution upon the first failure.",
-        defaultValue = "${BAIL:-false}"
-    )
-    public boolean $bail;
+    @Mixin
+    public BailMixin $bail;
 }

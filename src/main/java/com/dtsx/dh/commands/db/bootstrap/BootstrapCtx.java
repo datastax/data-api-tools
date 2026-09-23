@@ -17,6 +17,6 @@ public class BootstrapCtx extends BaseConnectedCtx {
     public BootstrapCtx(BootstrapArgs args, CommandSpec spec) {
         super(args, spec, ConnectionInfo.fromFlags(spec.commandLine(), args));
         this.keyspaces = args.$keyspaces;
-        this.yes = args.$yes;
+        this.yes = args.$yes.unwrap();
     }
 }

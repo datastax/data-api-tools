@@ -1,7 +1,7 @@
 package com.dtsx.dh.core.docs.runner.tests.reporter;
 
 import com.dtsx.dh.core.docs.planner.fixtures.JSFixture;
-import com.dtsx.dh.commands.docs.test.TestCtx;
+import com.dtsx.dh.commands.docs.test.DocsTestCtx;
 import com.dtsx.dh.core.docs.runner.tests.results.TestResults;
 import com.dtsx.dh.core.docs.runner.tests.results.TestRootResults;
 
@@ -17,7 +17,7 @@ import com.dtsx.dh.core.docs.runner.tests.results.TestRootResults;
 ///     - ✓ example.java
 /// ```
 public class AllTestsReporter extends TestReporter {
-    public AllTestsReporter(TestCtx ctx) {
+    public AllTestsReporter(DocsTestCtx ctx) {
         super(ctx);
     }
 
