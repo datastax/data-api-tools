@@ -4,13 +4,17 @@ import com.datastax.astra.client.DataAPIDestination;
 import com.dtsx.dh.commands.clients.test.ClientsTestCtx;
 import com.dtsx.dh.config.ConnectionInfo;
 import com.dtsx.dh.config.ctx.BaseCtx;
+import com.dtsx.dh.core.clients.ClientArtifactSpec.Remote;
 import com.dtsx.dh.core.clients.ClientSuite;
 import com.dtsx.dh.core.clients.SuiteCredentials;
+import com.dtsx.dh.core.common.CliException;
 import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.lib.ExternalPrograms;
 import com.dtsx.dh.lib.ExternalPrograms.ExternalProgram;
 import lombok.val;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
@@ -69,6 +73,10 @@ public class JavaSuite implements ClientSuite {
 
     @Override
     public void setup(ClientsTestCtx ctx, Path repoDir) {
+        if (ctx.repoSpec(ClientLanguage.JAVA) instanceof Remote) {
+            writeLombokConfig(repoDir);
+        }
+        writeLogbackConfig(ctx);
         ExternalPrograms.mvn(ctx).runOrThrow(repoDir, "-pl", "astra-db-java", "-am", "-B", "dependency:go-offline");
     }
 
@@ -99,6 +107,7 @@ public class JavaSuite implements ClientSuite {
 
             add("-Dtest.vectorize=" + ctx.toggles().vectorize());
             add("-Dtest.reranking=" + ctx.toggles().reranking());
+            add("-Dlogback.configurationFile=" + logbackConfigFile(ctx));
 
             if (ctx.connectionInfo().destination() != DataAPIDestination.HCD) {
                 add("-Dastra.db.url=" + ctx.connectionInfo().endpoint());
@@ -122,5 +131,52 @@ public class JavaSuite implements ClientSuite {
             }
         }
         return env;
+    }
+
+    /// Writes `lombok.config` at the repo root, with `config.stopBubbling = true` to avoid dh's
+    /// lombok config from affecting the suite's build.
+    private static void writeLombokConfig(Path repoDir) {
+        val configFile = repoDir.resolve("lombok.config");
+
+        try {
+            Files.writeString(configFile, "config.stopBubbling = true\n");
+        } catch (IOException e) {
+            throw new CliException("Failed to write " + configFile, e);
+        }
+    }
+
+    private static final String LOGBACK_CONFIG = """
+        <configuration>
+            <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder>
+                    <pattern>%d{HH:mm:ss.SSS} %-5level %-20logger : %msg%n</pattern>
+                </encoder>
+            </appender>
+
+            <logger name="com.datastax.astra" level="WARN" />
+
+            <root level="ERROR">
+                <appender-ref ref="STDOUT" />
+            </root>
+        </configuration>
+        """;
+
+    /// Writes the logback config [#buildCmd] points surefire at, quieting the three
+    /// `com.datastax.astra.*` loggers that `logback-test.xml` pins to `DEBUG`.
+    ///
+    /// Lives under `.dh_temp/` rather than the repo, since a local checkout's own
+    /// `logback-test.xml` is a tracked file.
+    private static void writeLogbackConfig(ClientsTestCtx ctx) {
+        val configFile = logbackConfigFile(ctx);
+
+        try {
+            Files.writeString(configFile, LOGBACK_CONFIG);
+        } catch (IOException e) {
+            throw new CliException("Failed to write " + configFile, e);
+        }
+    }
+
+    private static Path logbackConfigFile(ClientsTestCtx ctx) {
+        return ctx.tmpFolder().resolve("java-logback-cfg.xml").toAbsolutePath();
     }
 }

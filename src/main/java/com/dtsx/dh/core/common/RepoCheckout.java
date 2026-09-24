@@ -18,7 +18,7 @@ public class RepoCheckout {
     /// Always deletes the target directory first, then clones via init+fetch so a branch, tag or
     /// commit SHA all work through the same path. A spec pointing at an existing local checkout
     /// never goes through here at all - it's used as-is, with its git state untouched.
-    public static Path checkout(ExternalProgram git, Path targetDir, String repo, String ref) {
+    public static void checkout(ExternalProgram git, Path targetDir, String repo, String ref) {
         deleteIfExists(targetDir);
 
         try {
@@ -33,8 +33,6 @@ public class RepoCheckout {
         git.runOrThrow("-C", targetDir.toString(), "remote", "add", "origin", url);
         git.runOrThrow("-C", targetDir.toString(), "fetch", "--depth", "1", "--no-tags", "origin", ref);
         git.runOrThrow("-C", targetDir.toString(), "-c", "advice.detachedHead=false", "checkout", "-q", "FETCH_HEAD");
-
-        return targetDir;
     }
 
     private static void deleteIfExists(Path dir) {

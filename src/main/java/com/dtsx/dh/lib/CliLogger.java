@@ -88,9 +88,9 @@ public class CliLogger {
     ///
     /// Example:
     /// ```java
-    /// val result = loading("Installing dependencies...", (updateMsg) -> {
+    /// val result = loading("Installing dependencies", (updateMsg) -> {
     ///     installNpm();
-    ///     updateMsg.accept("Installing Python packages...");
+    ///     updateMsg.accept("Installing Python packages");
     ///     installPip();
     ///     return "done";
     /// });

@@ -42,7 +42,7 @@ public class BootstrapCmd extends BaseCmd<BootstrapCtx> {
                 continue;
             }
 
-            CliLogger.loading("Creating keyspace @!" + ks + "!@...", (_) -> {
+            CliLogger.loading("Creating keyspace @!" + ks + "!@", (_) -> {
                 KeyspaceOps.ensureKeyspace(admin, ks, existing);
                 return null;
             });

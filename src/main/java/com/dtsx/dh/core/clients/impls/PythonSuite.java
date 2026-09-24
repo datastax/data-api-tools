@@ -74,6 +74,9 @@ public class PythonSuite implements ClientSuite {
             addAll(Arrays.asList(ExternalPrograms.uv(ctx).cmd()));
             addAll(List.of("run", "pytest", "tests/base/integration"));
 
+            add("--log-cli-level=WARNING");
+            add("--log-level=INFO");
+
             if (ctx.toggles().admin()) {
                 add("tests/admin/integration");
             }

@@ -82,7 +82,7 @@ public class ClientsRunner {
         val total = ctx.languages().size();
         val completed = new AtomicInteger(0);
 
-        CliLogger.loading("Preparing client repos...", (update) -> {
+        CliLogger.loading("Preparing client repos", (update) -> {
             val tasks = new ArrayList<Runnable>();
 
             for (val lang : ctx.languages()) {
@@ -98,7 +98,7 @@ public class ClientsRunner {
                     suite.setup(ctx, repoDir);
 
                     val done = completed.incrementAndGet();
-                    update.update((_) -> "Preparing client repos (@!" + done + "/" + total + "!@)...");
+                    update.update((msg) -> msg + " (@!" + done + "/" + total + "!@)");
                 });
             }
 
@@ -128,7 +128,7 @@ public class ClientsRunner {
         val admin = DataAPIUtils.getDatabaseAdmin(ctx.connectionInfo());
         val existing = admin.listKeyspaceNames();
 
-        CliLogger.loading("Ensuring @!default_keyspace!@ exists...", (_) -> {
+        CliLogger.loading("Ensuring @!default_keyspace!@ exists", (_) -> {
             KeyspaceOps.ensureKeyspace(admin, DataAPIClientOptions.DEFAULT_KEYSPACE, existing);
             return null;
         });
@@ -144,7 +144,7 @@ public class ClientsRunner {
         val langName = lang.name().toLowerCase();
 
         if (entry.needsWipe()) {
-            CliLogger.loading("Wiping target database for @!" + langName + "!@...", (_) -> {
+            CliLogger.loading("Wiping target database for @!" + langName + "!@", (_) -> {
                 wipeContentsFor(ctx);
                 return null;
             });
@@ -157,7 +157,7 @@ public class ClientsRunner {
         RunResult result = null;
 
         try {
-            result = CliLogger.loading("Running @!" + langName + "!@ integration tests...", (_) ->
+            result = CliLogger.loading("Running @!" + langName + "!@ integration tests", (_) ->
                 ExternalPrograms.custom().run(entry.invocation().cwd(), entry.invocation().env(), (line) -> appendToLog(logWriter, line), entry.invocation().cmd().toArray(new String[0]))
             );
         } finally {

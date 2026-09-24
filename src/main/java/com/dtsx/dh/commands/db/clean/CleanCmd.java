@@ -61,7 +61,7 @@ public class CleanCmd extends BaseCmd<CleanCtx> {
 
         if (ctx.dropKeyspaces() && !keyspacesToDrop.isEmpty()) {
             CliLogger.println(false);
-            CliLogger.loading("Dropping keyspace(s) @!" + String.join(", ", keyspacesToDrop) + "!@...", (_) -> {
+            CliLogger.loading("Dropping keyspace(s) @!" + String.join(", ", keyspacesToDrop) + "!@", (_) -> {
                 keyspacesToDrop.forEach(admin::dropKeyspace);
                 return null;
             });
@@ -96,7 +96,7 @@ public class CleanCmd extends BaseCmd<CleanCtx> {
         printItems("UDTs", contents.udts());
 
         if (ctx.yes()) {
-            CliLogger.loading("Dropping contents of @!" + keyspace + "!@...", (_) -> {
+            CliLogger.loading("Dropping contents of @!" + keyspace + "!@", (_) -> {
                 KeyspaceOps.dropContents(connInfo, keyspace, contents);
                 return null;
             });

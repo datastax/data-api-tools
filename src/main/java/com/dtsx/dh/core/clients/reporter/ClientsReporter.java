@@ -40,15 +40,14 @@ public class ClientsReporter {
         for (val lang : plan.languages()) {
             val entry = plan.entry(lang);
 
-            CliLogger.println(false);
             CliLogger.println(false, "  @!" + lang.name().toLowerCase() + "!@:");
-            CliLogger.println(false, "    repo: " + describeRepoSpec(entry.repoSpec()));
-            CliLogger.println(false, "    cwd: " + entry.repoDir());
-            CliLogger.println(false, "    cmd: " + String.join(" ", entry.invocation().cmd()));
+            CliLogger.println(false, "    repo: @|faint " + describeRepoSpec(entry.repoSpec()) + "|@");
+            CliLogger.println(false, "    cwd: @|faint " + entry.repoDir() + "|@");
+            CliLogger.println(false, "    cmd: @|faint " + String.join(" ", entry.invocation().cmd()) + "|@");
             CliLogger.println(false, "    env:");
 
             for (val e : entry.invocation().env().entrySet()) {
-                CliLogger.println(false, "      " + e.getKey() + "=" + mask(e.getValue(), secrets));
+                CliLogger.println(false, "      " + e.getKey() + ": @|faint " + mask(e.getValue(), secrets) + "|@");
             }
         }
     }
