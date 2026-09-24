@@ -1,0 +1,72 @@
+name: 'Actually use dh'
+description: 'Builds and runs the `dh` cli'
+
+inputs:
+  args:
+    description: 'Args to pass to dh'
+    required: true
+  allow-failures:
+    description: 'Whether to allow test failures without failing the entire workflow'
+    default: 'false'
+
+outputs:
+  dh-cli-path:
+    description: 'Path to the built dh jar file'
+    value: ${{ steps.build-cli.outputs.dh-cli-path }}
+  failed_tests:
+    description: 'Whether any tests failed'
+    value: ${{ steps.run-tests.outputs.failed_tests }}
+
+runs:
+  using: composite
+  steps:
+    # --- java ---
+    - name: Setup java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+        cache: 'gradle'
+
+    - name: Verify java
+      shell: bash
+      run: |
+        set -x
+        java --version
+
+    # --- actually use dh ---
+    - name: Use dh
+      shell: bash
+      id: run-tests
+      run: |
+        set -x
+
+        export SPINNER=false
+        source astra-client-docs-tests/scripts/dev-alias.sh --no-compgen
+
+        set +e
+
+        dh ${{ inputs.args }}
+        exit_code=$?
+
+        case $exit_code in
+          0)
+            echo "failed_tests=false" >> $GITHUB_OUTPUT
+            ;;
+          100)
+            echo "failed_tests=true" >> $GITHUB_OUTPUT
+            if [[ "${{ inputs.allow-failures }}" == 'false' ]]; then
+              exit 100
+            fi
+            ;;
+          *)
+            exit $exit_code
+            ;;
+        esac
+
+    - name: Print logs on failure
+      if: always() && steps.run-tests.outputs.failed_tests == 'true'
+      shell: bash
+      run: |
+        set -x
+        cat astra-client-docs-tests/.dh_temp/logs/* || echo "No logs found"

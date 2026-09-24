@@ -36,17 +36,21 @@ runs:
         ref: '${{ inputs.testing-repo-ref }}'
         path: astra-client-docs-tests
 
-    - name: Run client compilation tests
-      id: run-tests
-      uses: ./astra-client-docs-tests/.github/actions/use-dh
-      env:
-        ASTRA_TOKEN: 'dummy-token'
-        API_ENDPOINT: 'dummy-endpoint'
+    - name: Setup docs env
+      uses: ./astra-client-docs-tests/.github/actions/_setup-docs-env
       with:
         docs-repo: ${{ inputs.docs-repo }}
         docs-repo-token: ${{ inputs.docs-repo-token }}
         examples-path: ${{ inputs.examples-path }}
-        allow-failures: ${{ inputs.allow-failures }}
         setup-languages: ${{ inputs.clients }}
+
+    - name: Run client compilation tests
+      id: run-tests
+      uses: ./astra-client-docs-tests/.github/actions/_use-dh
+      env:
+        ASTRA_TOKEN: 'dummy-token'
+        API_ENDPOINT: 'dummy-endpoint'
+      with:
+        allow-failures: ${{ inputs.allow-failures }}
         args: |
           docs test -m compile_only ${{ inputs.clients }} ${{ inputs.args }}

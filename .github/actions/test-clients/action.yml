@@ -1,0 +1,46 @@
+inputs:
+  clients:
+    description: 'Comma-separated list of clients to test (e.g., java,typescript,python) or "all" for all clients'
+    required: true
+  args:
+    description: 'Additional arguments to pass to dh'
+    default: ''
+  db-token:
+    description: 'Astra token for authentication'
+    required: true
+  db-endpoint:
+    description: 'API endpoint for testing'
+    required: true
+  allow-failures:
+    description: 'Whether to allow test failures without failing the entire workflow'
+    default: 'false'
+
+outputs:
+  failed_tests:
+    description: 'Whether any tests failed'
+    value: ${{ steps.run-tests.outputs.failed_tests }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout docs testing repository
+      uses: actions/checkout@v4
+      with:
+        repository: 'datastax/astra-client-docs-tests'
+        path: astra-client-docs-tests
+
+    - name: Setup clients env
+      uses: ./astra-client-docs-tests/.github/actions/_setup-clients-env
+      with:
+        clients: ${{ inputs.clients }}
+
+    - name: Run client integration tests
+      id: run-tests
+      uses: ./astra-client-docs-tests/.github/actions/_use-dh
+      env:
+        ASTRA_TOKEN: ${{ inputs.db-token }}
+        API_ENDPOINT: ${{ inputs.db-endpoint }}
+      with:
+        allow-failures: ${{ inputs.allow-failures }}
+        args: |
+          clients test ${{ inputs.clients }} ${{ inputs.args }}

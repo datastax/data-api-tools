@@ -70,10 +70,15 @@ public class CliLogger {
 
     /// Enables or disables the loading spinner.
     ///
-    /// Controlled by `--spinner`/`--no-spinner` flags or `SPINNER` env var (default: true).
+    /// Controlled by `--spinner`/`--no-spinner` flags or `SPINNER` env var (default: true), and
+    /// only ever active when stdout is an interactive terminal.
     /// When disabled, loading messages are printed directly instead of showing a spinner.
     public static void setSpinnerEnabled(boolean spinnerEnabled) {
-        CliLogger.spinnerEnabled = spinnerEnabled;
+        CliLogger.spinnerEnabled = spinnerEnabled && isStdoutTerminal();
+    }
+
+    private static boolean isStdoutTerminal() {
+        return System.console() != null && System.console().isTerminal();
     }
 
     /// Prints to stdout with a newline.

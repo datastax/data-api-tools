@@ -1,5 +1,5 @@
-name: 'setup-dh'
-description: 'Builds the `dh` cli + installs any required dependencies'
+name: 'Setup docs environment'
+description: 'Clones the docs repo and installs the language toolchains needed to run docs examples'
 
 inputs:
   docs-repo:
@@ -18,20 +18,6 @@ inputs:
     description: 'Install jq'
     required: false
     default: 'false'
-  args:
-    description: 'Args to pass to dh'
-    required: true
-  allow-failures:
-    description: 'Whether to allow test failures without failing the entire workflow'
-    default: 'false'
-
-outputs:
-  dh-cli-path:
-    description: 'Path to the built dh jar file'
-    value: ${{ steps.build-cli.outputs.dh-cli-path }}
-  failed_tests:
-    description: 'Whether any tests failed'
-    value: ${{ steps.run-tests.outputs.failed_tests }}
 
 runs:
   using: composite
@@ -44,25 +30,25 @@ runs:
         BRANCH="main"
 
         REPO_INPUT="${{ inputs.docs-repo }}"
-        
+
         if [[ -n "$REPO_INPUT" ]]; then
           if [[ "$REPO_INPUT" == *"@"* ]]; then
             LEFT="${REPO_INPUT%%@*}"
             RIGHT="${REPO_INPUT#*@}"
-        
+
             [[ -n "$LEFT" ]] && REPO_PATH="$LEFT"
             [[ -n "$RIGHT" ]] && BRANCH="$RIGHT"
           else
             REPO_PATH="$REPO_INPUT"
           fi
         fi
-        
+
         EXAMPLES_PATH="${{ inputs.examples-path }}"
-        
+
         echo "repo-path=$REPO_PATH" >> $GITHUB_OUTPUT
         echo "branch=$BRANCH" >> $GITHUB_OUTPUT
         echo "examples-path=$EXAMPLES_PATH" >> $GITHUB_OUTPUT
-        
+
         echo "Repository: '$REPO_PATH'"
         echo "Branch: '$BRANCH'"
         echo "Examples path: '$EXAMPLES_PATH'"
@@ -83,28 +69,14 @@ runs:
       run: |
         DOCS_PATH="${{ github.workspace }}/docs-repo"
         EXAMPLES_FOLDER="$DOCS_PATH/${{ steps.parse-repo.outputs.examples-path }}"
-        
+
         if [ ! -d "$EXAMPLES_FOLDER" ]; then
           echo "ERROR: Examples folder not found: $EXAMPLES_FOLDER"
           exit 1
         fi
-        
+
         echo "EXAMPLES_FOLDER=$EXAMPLES_FOLDER" >> $GITHUB_ENV
         echo "Documentation cloned to: $DOCS_PATH"
-
-    # --- java ---
-    - name: Setup java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '25'
-        cache: 'gradle'
-
-    - name: Verify java
-      shell: bash
-      run: |
-        set -x
-        java --version
 
     # --- typescript ---
     - name: Setup node
@@ -121,7 +93,6 @@ runs:
         set -x
         node --version
         npm --version
-        npx tsx --version
 
     - name: Setup + verify tsx
       if: inputs.setup-languages == 'all' || contains(inputs.setup-languages, 'typescript')
@@ -173,40 +144,3 @@ runs:
         set -x
         sudo apt-get update && sudo apt-get install -y jq
         jq --version
-
-    # --- actually use dh ---
-    - name: Use dh
-      shell: bash
-      id: run-tests
-      run: |
-        set -x
-        
-        export SPINNER=false
-        source astra-client-docs-tests/scripts/dev-alias.sh --no-compgen
-        
-        set +e
-        
-        dh ${{ inputs.args }}
-        exit_code=$?
-        
-        case $exit_code in
-          0)
-            echo "failed_tests=false" >> $GITHUB_OUTPUT
-            ;;
-          100)
-            echo "failed_tests=true" >> $GITHUB_OUTPUT
-            if [[ "${{ inputs.allow-failures }}" == 'false' ]]; then
-              exit 100
-            fi
-            ;;
-          *)
-            exit $exit_code
-            ;;
-        esac
-
-    - name: Print logs on failure
-      if: always() && steps.run-tests.outputs.failed_tests == 'true'
-      shell: bash
-      run: |
-        set -x
-        cat astra-client-docs-tests/.dh_temp/logs/* || echo "No logs found"
