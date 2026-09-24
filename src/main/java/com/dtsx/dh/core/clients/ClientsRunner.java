@@ -98,7 +98,7 @@ public class ClientsRunner {
                     suite.setup(ctx, repoDir);
 
                     val done = completed.incrementAndGet();
-                    update.update((msg) -> msg + " (@!" + done + "/" + total + "!@)");
+                    update.update((_) -> "Preparing client repos (@!" + done + "/" + total + "!@)");
                 });
             }
 

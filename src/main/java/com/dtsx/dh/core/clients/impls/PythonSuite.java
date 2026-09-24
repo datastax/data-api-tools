@@ -70,12 +70,24 @@ public class PythonSuite implements ClientSuite {
 
     @Override
     public List<String> buildCmd(ClientsTestCtx ctx) {
+        val filters = new ArrayList<String>() {{
+            if (!ctx.toggles().vectorize()) {
+                add("not vectorize");
+            }
+
+            if (!ctx.toggles().reranking()) {
+                add("not rerank and not farr");
+            }
+        }};
+
         return new ArrayList<>() {{
             addAll(Arrays.asList(ExternalPrograms.uv(ctx).cmd()));
             addAll(List.of("run", "pytest", "tests/base/integration"));
 
             add("--log-cli-level=WARNING");
             add("--log-level=INFO");
+
+            addAll(List.of("-k", String.join(" and ", filters)));
 
             if (ctx.toggles().admin()) {
                 add("tests/admin/integration");
