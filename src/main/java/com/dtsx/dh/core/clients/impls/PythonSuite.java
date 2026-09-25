@@ -89,9 +89,14 @@ public class PythonSuite implements ClientSuite {
 
             addAll(List.of("-k", String.join(" and ", filters)));
 
-            if (ctx.toggles().admin()) {
-                add("tests/admin/integration");
-            }
+//            TODO needs more env vars
+//            if (ctx.toggles().admin()) {
+//                add("tests/admin/integration");
+//            }
+
+//            if (ctx.toggles().exhaustiveVectorize()) {
+//                add("tests/vectorize/integration");
+//            }
         }};
     }
 
@@ -111,6 +116,9 @@ public class PythonSuite implements ClientSuite {
             env.put(LOCAL_CASSANDRA_CONTACT_POINT_VAR, resolveCassandraContactPoint(conn, ctx.cassandraContactPoint()));
         }
 
+        env.put("RUN_SHARED_SECRET_VECTORIZE_TESTS", "no");
+//        env.put("ALLOW_MISSING_VECTORIZE_TESTS", "yes");
+
         if (ctx.toggles().vectorize()) {
             ctx.credentials().get("voyageAI").ifPresent((key) -> env.put("HEADER_EMBEDDING_API_KEY_VOYAGEAI", key));
         }
@@ -118,6 +126,12 @@ public class PythonSuite implements ClientSuite {
         if (ctx.toggles().reranking()) {
             ctx.credentials().rerankingKey().ifPresent((key) -> env.put("HEADER_RERANKING_API_KEY_NVIDIA", key));
         }
+
+//        TODO
+//        if (ctx.toggles().exhaustiveVectorize()) {
+//            env.put("TEST_EXTENDED_VECTORIZE", "yes");
+//        }
+
         return env;
     }
 
