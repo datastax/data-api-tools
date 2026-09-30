@@ -84,7 +84,7 @@ public class PythonSuite implements ClientSuite {
             addAll(Arrays.asList(ExternalPrograms.uv(ctx).cmd()));
             addAll(List.of("run", "pytest", "tests/base/integration"));
 
-            add("--log-cli-level=WARNING");
+            add("--log-cli-level=ERROR");
             add("--log-level=INFO");
 
             addAll(List.of("-k", String.join(" and ", filters)));

@@ -4,6 +4,7 @@ import com.dtsx.dh.commands.clients.test.ClientsTestCtx;
 import com.dtsx.dh.core.clients.ClientArtifactSpec.LocalPath;
 import com.dtsx.dh.core.clients.ClientSuite.Invocation;
 import com.dtsx.dh.core.common.ClientLanguage;
+import com.dtsx.dh.lib.CliLogger;
 import lombok.val;
 
 import java.nio.file.Path;
@@ -18,7 +19,7 @@ public class ClientsPlan {
     /// One selected language's resolved plan: its suite, the repo spec it was resolved from, the
     /// directory its repo lives (or will live) in, the exact invocation that'll run it, and whether
     /// its target keyspaces need wiping first.
-    public record Entry(ClientSuite suite, ClientArtifactSpec repoSpec, Path repoDir, Invocation invocation, boolean needsWipe) {}
+    public record Entry(ClientSuite suite, ClientArtifactSpec repoSpec, Path repoDir, Path logFile, Invocation invocation, boolean needsWipe) {}
 
     private final Map<ClientLanguage, Entry> entries;
 
@@ -34,8 +35,9 @@ public class ClientsPlan {
             val repoSpec = ctx.repoSpec(lang);
             val repoDir = resolveRepoDir(ctx, lang, repoSpec);
             val invocation = suite.invocation(ctx, repoDir);
+            val logsDir = CliLogger.runLogsDir(ctx).resolve("clients-" + lang.name().toLowerCase() + ".log");
 
-            entries.put(lang, new Entry(suite, repoSpec, repoDir, invocation, suite.needsWipe()));
+            entries.put(lang, new Entry(suite, repoSpec, repoDir, logsDir, invocation, suite.needsWipe()));
         }
 
         return new ClientsPlan(entries);

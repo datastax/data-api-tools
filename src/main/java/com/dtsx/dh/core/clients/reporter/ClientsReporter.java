@@ -42,7 +42,7 @@ public class ClientsReporter {
 
             CliLogger.println(false, "  @!" + lang.name().toLowerCase() + "!@:");
             CliLogger.println(false, "    repo: @|faint " + describeRepoSpec(entry.repoSpec()) + "|@");
-            CliLogger.println(false, "    cwd: @|faint " + entry.repoDir() + "|@");
+            CliLogger.println(false, "    log: @|faint open " + entry.logFile() + "|@");
             CliLogger.println(false, "    cmd: @|faint " + String.join(" ", entry.invocation().cmd()) + "|@");
             CliLogger.println(false, "    env:");
 
@@ -75,7 +75,7 @@ public class ClientsReporter {
         }
 
         val durationPart = color(Style.faint, "(" + DurationUtils.formatDuration(result.duration()) + ")");
-        val logPart = color(Style.faint, " - log: " + result.logFile());
+        val logPart = result.logFile().map((path) -> color(Style.faint, " " + path)).orElse("");
 
         CliLogger.println(false, "  " + describeOutcome(result.outcome()) + " " + label + " " + durationPart + logPart);
     }

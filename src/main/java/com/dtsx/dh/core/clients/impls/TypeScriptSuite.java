@@ -4,6 +4,7 @@ import com.datastax.astra.client.DataAPIDestination;
 import com.dtsx.dh.commands.clients.test.ClientsTestCtx;
 import com.dtsx.dh.config.ConnectionInfo;
 import com.dtsx.dh.config.ctx.BaseCtx;
+import com.dtsx.dh.core.clients.ClientArtifactSpec.LocalPath;
 import com.dtsx.dh.core.clients.ClientSuite;
 import com.dtsx.dh.core.clients.SuiteCredentials;
 import com.dtsx.dh.core.common.CliException;
@@ -77,9 +78,12 @@ public class TypeScriptSuite implements ClientSuite {
 
     @Override
     public void setup(ClientsTestCtx ctx, Path repoDir) {
-        ExternalPrograms.npm(ctx).runOrThrow(repoDir, "ci");
+        ExternalPrograms.npm(ctx).runOrThrow(repoDir, "i");
 
         if (ctx.toggles().exhaustiveVectorize()) {
+            if (ctx.repoSpec(language()) instanceof LocalPath) {
+                throw new CliException("Cannot create vectorize_test_spec.json for a local repo; Use a git ref instead of `-R local`.");
+            }
             writeVectorizeSpec(repoDir, ctx.credentials());
         }
     }
@@ -108,7 +112,7 @@ public class TypeScriptSuite implements ClientSuite {
 
         if (!ctx.toggles().exhaustiveVectorize()) {
             cmd.add("-F");
-            cmd.add("LONG");
+            cmd.add("integration.documents.vectorize");
         }
 
         cmd.add("-R");

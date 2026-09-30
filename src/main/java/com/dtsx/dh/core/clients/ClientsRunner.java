@@ -6,28 +6,25 @@ import com.dtsx.dh.core.clients.ClientArtifactSpec.Remote;
 import com.dtsx.dh.core.clients.reporter.ClientsReporter;
 import com.dtsx.dh.core.clients.results.ClientResult;
 import com.dtsx.dh.core.clients.results.Outcome;
-import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.core.common.CliException;
+import com.dtsx.dh.core.common.ClientLanguage;
 import com.dtsx.dh.core.common.RepoCheckout;
-import com.dtsx.dh.lib.CliLogger;
-import com.dtsx.dh.lib.DataAPIUtils;
-import com.dtsx.dh.lib.ExecutorUtils;
-import com.dtsx.dh.lib.ExternalPrograms;
+import com.dtsx.dh.lib.*;
 import com.dtsx.dh.lib.ExternalPrograms.OutputLine;
 import com.dtsx.dh.lib.ExternalPrograms.RunResult;
-import com.dtsx.dh.lib.KeyspaceOps;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,11 +36,9 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 /// database: bootstrapping the database, running each selected client's own suite in turn against an
 /// already-built [ClientsPlan], and writing its log.
 public class ClientsRunner {
-    private static final ClientResult BAILED_RESULT = new ClientResult(Outcome.SKIPPED, Duration.ZERO, null);
+    private static final ClientResult BAILED_RESULT = new ClientResult(Outcome.SKIPPED, Duration.ZERO, Optional.empty());
 
     public static boolean runSuites(ClientsTestCtx ctx, ClientsPlan plan) {
-        val logsDir = CliLogger.runLogsDir(ctx);
-
         bootstrapDatabase(ctx);
 
         val results = new LinkedHashMap<ClientLanguage, ClientResult>();
@@ -53,7 +48,7 @@ public class ClientsRunner {
 
         for (val lang : plan.languages()) {
             val result = (!bailed)
-                ? runClient(ctx, plan, lang, logsDir)
+                ? runClient(ctx, plan, lang)
                 : BAILED_RESULT;
 
             results.put(lang, result);
@@ -126,9 +121,9 @@ public class ClientsRunner {
 
     private static void bootstrapDatabase(ClientsTestCtx ctx) {
         val admin = DataAPIUtils.getDatabaseAdmin(ctx.connectionInfo());
-        val existing = admin.listKeyspaceNames();
 
         CliLogger.loading("Ensuring @!default_keyspace!@ exists", (_) -> {
+            val existing = admin.listKeyspaceNames();
             KeyspaceOps.ensureKeyspace(admin, DataAPIClientOptions.DEFAULT_KEYSPACE, existing);
             return null;
         });
@@ -139,7 +134,7 @@ public class ClientsRunner {
         KeyspaceOps.wipeAllContents(ctx.connectionInfo(), admin);
     }
 
-    private static ClientResult runClient(ClientsTestCtx ctx, ClientsPlan plan, ClientLanguage lang, Path logsDir) {
+    private static ClientResult runClient(ClientsTestCtx ctx, ClientsPlan plan, ClientLanguage lang) {
         val entry = plan.entry(lang);
         val langName = lang.name().toLowerCase();
 
@@ -150,15 +145,24 @@ public class ClientsRunner {
             });
         }
 
-        val logFile = resolveLogPath(logsDir, langName);
-        val logWriter = openLogWriter(logFile, entry);
+        val logWriter = openLogWriter(entry);
 
         val start = Instant.now();
         RunResult result = null;
 
         try {
-            result = CliLogger.loading("Running @!" + langName + "!@ integration tests", (_) ->
-                ExternalPrograms.custom().run(entry.invocation().cwd(), entry.invocation().env(), (line) -> appendToLog(logWriter, line), entry.invocation().cmd().toArray(new String[0]))
+            val loadingMsg = "Running @!" + langName + "!@ integration tests";
+
+            result = CliLogger.loading(loadingMsg, (msg) ->
+                ExternalPrograms.custom().run(
+                    entry.invocation().cwd(),
+                    entry.invocation().env(),
+                    (line) -> {
+                        appendToLog(logWriter, line);
+                        msg.update(_ -> loadingMsg + " (@|faint " + truncate(line.unwrap().trim(), 80) + "|@)");
+                    },
+                    entry.invocation().cmd().toArray(new String[0])
+                )
             );
         } finally {
             closeLogWriter(logWriter, result);
@@ -170,18 +174,15 @@ public class ClientsRunner {
             ? Outcome.PASS
             : Outcome.FAIL;
 
-        return new ClientResult(outcome, duration, logFile);
+        return new ClientResult(outcome, duration, Optional.of(entry.logFile()));
     }
 
-    /// Resolves the log path for a client, creating its parent directory.
-    private static Path resolveLogPath(Path logsDir, String label) {
-        try {
-            Files.createDirectories(logsDir);
-        } catch (IOException e) {
-            throw new CliException("Failed to create log directory " + logsDir, e);
+    @SuppressWarnings("SameParameterValue")
+    private static String truncate(String str, int maxLength) {
+        if (str.length() <= maxLength) {
+            return str;
         }
-
-        return logsDir.resolve("clients-" + label + ".log");
+        return str.substring(0, maxLength) + "...";
     }
 
     /// Opens `logFile`, writing the `cwd`/`cmd` header immediately so a `tail -f` shows context
@@ -189,9 +190,10 @@ public class ClientsRunner {
     ///
     /// Returns `null` if the file could not be opened, in which case log writes are silently
     /// skipped for the rest of the run.
-    private static @Nullable BufferedWriter openLogWriter(Path logFile, ClientsPlan.Entry entry) {
+    private static @Nullable BufferedWriter openLogWriter(ClientsPlan.Entry entry) {
         try {
-            val writer = Files.newBufferedWriter(logFile, UTF_8, CREATE, TRUNCATE_EXISTING);
+            Files.createDirectories(entry.logFile().getParent());
+            val writer = Files.newBufferedWriter(entry.logFile(), UTF_8, CREATE, TRUNCATE_EXISTING);
             writer.write("cwd: " + entry.invocation().cwd() + "\n");
             writer.write("cmd: " + String.join(" ", entry.invocation().cmd()) + "\n\n");
             writer.flush();
