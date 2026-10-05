@@ -89,8 +89,8 @@ public class HelperCli {
             .toList();
 
         for (val dir : dirs) {
-            applyDotenvFile(dir.resolve(".env.common"));
-            scope.ifPresent((s) -> applyDotenvFile(dir.resolve(".env." + s)));
+            applyDotenvFile(dir.resolve(".env.dh.common"));
+            scope.ifPresent((s) -> applyDotenvFile(dir.resolve(".env.dh." + s)));
         }
     }
 
