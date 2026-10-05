@@ -35,11 +35,11 @@ runs:
     - name: Checkout docs testing repository
       uses: actions/checkout@v4
       with:
-        repository: 'datastax/astra-client-docs-tests'
-        path: astra-client-docs-tests
+        repository: 'datastax/data-api-tools'
+        path: data-api-tools
 
     - name: Setup docs env
-      uses: ./astra-client-docs-tests/.github/actions/_setup-docs-env
+      uses: ./data-api-tools/.github/actions/_setup-docs-env
       with:
         docs-repo: ${{ inputs.docs-repo }}
         docs-repo-token: ${{ inputs.docs-repo-token }}
@@ -49,7 +49,7 @@ runs:
 
     - name: Run client compilation tests
       id: run-tests
-      uses: ./astra-client-docs-tests/.github/actions/_use-dh
+      uses: ./data-api-tools/.github/actions/_use-dh
       env:
         ASTRA_TOKEN: ${{ inputs.db-token }}
         API_ENDPOINT: ${{ inputs.db-endpoint }}

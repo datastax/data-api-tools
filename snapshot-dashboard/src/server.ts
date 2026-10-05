@@ -20,7 +20,7 @@ async function validateEnvironment(): Promise<void> {
   if (!process.env.EXAMPLES_DIR) {
     console.error('ERROR: EXAMPLES_DIR environment variable is not set');
     console.error('Please set EXAMPLES_DIR to the absolute path of your snapshots directory');
-    console.error('Example: export EXAMPLES_DIR=/Users/me/work/astra-client-docs-tests/resources/mock_examples');
+    console.error('Example: export EXAMPLES_DIR=/Users/me/work/data-api-tools/resources/mock_examples');
     process.exit(1);
   }
 

@@ -42,7 +42,7 @@ runs:
         set -x
 
         export SPINNER=false
-        source astra-client-docs-tests/scripts/dev-alias.sh --no-compgen
+        source data-api-tools/scripts/dev-alias.sh --no-compgen
 
         set +e
 
@@ -69,4 +69,4 @@ runs:
       shell: bash
       run: |
         set -x
-        cat astra-client-docs-tests/.dh_temp/logs/* || echo "No logs found"
+        cat data-api-tools/.dh_temp/logs/* || echo "No logs found"
