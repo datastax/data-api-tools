@@ -18,7 +18,7 @@ public class TableErrorsArgs extends BaseArgs<TableErrorsCtx> {
         names = { "-o", "--output" },
         description = "Output AsciiDoc file",
         paramLabel = "OUTPUT_FILE",
-        defaultValue = "build/docs/table-errors"
+        defaultValue = "../docs-common/modules/data-api/partials/dataapi-errors.adoc"
     )
     public String $output;
 
