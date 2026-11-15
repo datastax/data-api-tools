@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.dtsx.dh.lib.ColorUtils.ACCENT_COLOR;
@@ -38,12 +39,20 @@ import static com.dtsx.dh.lib.ColorUtils.ACCENT_COLOR;
 public class HelperCli {
     public static Path CLI_DIR = Path.of(Optional.ofNullable(System.getenv("CLI_DIR")).orElse(".")).toAbsolutePath();
 
-    /// Scopes that get their own `.env.<scope>` file, keyed by the first CLI argument that
-    /// selects them (e.g. `dh docs test ...` -> scope `docs`). Matched anywhere in the args rather
-    /// than at position 0, so it keeps working if the root command ever grows options of its own.
+    /// The set of scopes that can get their own `.env.dh.<scope>` file is derived from the
+    /// registered subcommand names themselves (via reflection on their `@Command` annotations)
+    /// rather than a hand-maintained list, so a new subcommand picks up scoped env support for
+    /// free instead of needing a second edit here.
     ///
-    /// Adding a new scope (e.g. `db`) is a one-line change here.
-    private static final Set<String> ENV_SCOPES = Set.of("docs", "clients");
+    /// This is read via reflection, not by building a `CommandLine` and calling
+    /// `getSubcommands()`, because that would require constructing the `CommandLine` before
+    /// `loadDotenvFiles` runs -- and `applyDotenvFile` has to run first, since its system
+    /// properties are what `${VAR}` defaultValue expressions resolve against.
+    private static Set<String> registeredSubcommandNames() {
+        return Arrays.stream(HelperCli.class.getAnnotation(Command.class).subcommands())
+            .map((cls) -> cls.getAnnotation(Command.class).name())
+            .collect(Collectors.toSet());
+    }
 
     @SuppressWarnings({ "UnnecessaryModifier", "InstantiationOfUtilityClass" })
     public static void main(String[] args) {
@@ -79,8 +88,10 @@ public class HelperCli {
     /// resolve against) and only for keys the real environment doesn't already define, so a stale
     /// file can never shadow what the caller actually exported.
     private static void loadDotenvFiles(String[] args) {
+        val scopes = registeredSubcommandNames();
+
         val scope = Arrays.stream(args)
-            .filter(ENV_SCOPES::contains)
+            .filter(scopes::contains)
             .findFirst();
 
         val dirs = Stream.of(Path.of("."), CLI_DIR)
