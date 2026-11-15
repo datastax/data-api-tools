@@ -1,0 +1,66 @@
+name: 'Setup clients environment'
+description: 'Installs the language toolchains needed to run client integration tests'
+
+inputs:
+  clients:
+    description: 'Comma-separated list of clients to test (e.g., java,typescript,python) or "all" for all clients'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # --- typescript ---
+    - name: Setup node
+      if: inputs.clients == 'all' || contains(inputs.clients, 'typescript')
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+        cache: 'npm'
+
+    - name: Verify node
+      if: inputs.clients == 'all' || contains(inputs.clients, 'typescript')
+      shell: bash
+      run: |
+        set -x
+        node --version
+        npm --version
+
+    # --- python ---
+    - name: Setup uv
+      if: inputs.clients == 'all' || contains(inputs.clients, 'python')
+      uses: astral-sh/setup-uv@v6
+
+    - name: Verify uv
+      if: inputs.clients == 'all' || contains(inputs.clients, 'python')
+      shell: bash
+      run: |
+        set -x
+        uv --version
+
+    # --- go ---
+    - name: Setup go
+      if: inputs.clients == 'all' || contains(inputs.clients, 'go')
+      uses: actions/setup-go@v5
+      with:
+        go-version: 'stable'
+
+    - name: Verify go
+      if: inputs.clients == 'all' || contains(inputs.clients, 'go')
+      shell: bash
+      run: |
+        set -x
+        go version
+
+    # --- dotnet ---
+    - name: Setup dotnet
+      if: inputs.clients == 'all' || contains(inputs.clients, 'csharp')
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Verify dotnet
+      if: inputs.clients == 'all' || contains(inputs.clients, 'csharp')
+      shell: bash
+      run: |
+        set -x
+        dotnet --list-sdks

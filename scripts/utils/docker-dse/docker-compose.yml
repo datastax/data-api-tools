@@ -9,7 +9,7 @@ services:
       - "9042:9042"
       - "8081:8081"
       - "8090:8090"
-    mem_limit: 2G
+    mem_limit: 4G
     environment:
       - JAVA_OPTS="-Xmx2G"
       - CLUSTER_NAME=sgv2-cluster

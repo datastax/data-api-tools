@@ -40,7 +40,7 @@ export PORT=3000
 ### Example
 
 ```bash
-export EXAMPLES_DIR=/Users/me/work/astra-client-docs-tests/snapshots
+export EXAMPLES_DIR=/Users/me/work/data-api-tools/snapshots
 export PORT=3000
 ```
 

@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.dtsx.docs"
+group = "com.dtsx.dh"
 version = "1.0.0-alpha.1"
 
 repositories {
@@ -39,11 +39,21 @@ dependencies {
 
     // no idea what this is :)
     implementation("com.datastax.astra:astra-db-java:2.1.4")
+
+    // architecture boundary tests
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {
     applicationDefaultJvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
-    mainClass.set("com.dtsx.docs.HelperCli")
+    mainClass.set("com.dtsx.dh.HelperCli")
 }
 
 tasks.register<Jar>("fatJar") {
@@ -58,7 +68,7 @@ tasks.register<Jar>("fatJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes["Main-Class"] = "com.dtsx.docs.HelperCli"
+        attributes["Main-Class"] = "com.dtsx.dh.HelperCli"
     }
 
     from(sourceSets.main.get().output)
