@@ -39,15 +39,25 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         Pattern.DOTALL
     );
 
-    private static final Map<String, String[]> ERROR_CODE_SEE_ALSO_MAP = Map.of(
-        "DOCUMENT_REPLACE_DIFFERENT_DOCID", new String[] {
+    /**
+     * @param condition AsciiDoc attribute expression (e.g. {@code data-api-rerank-collections}) wrapped in
+     *                  {@code ifdef::...[]} so the link is only rendered where the target page exists; null means always render.
+     */
+    private record SeeAlso(String xref, String text, String condition) {
+        SeeAlso(String xref, String text) {
+            this(xref, text, null);
+        }
+    }
+
+    private static final Map<String, SeeAlso> ERROR_CODE_SEE_ALSO_MAP = Map.of(
+        "DOCUMENT_REPLACE_DIFFERENT_DOCID", new SeeAlso(
             "xref:api-reference:document-methods/replace-one.adoc",
             ""
-        },
-        "FILTER_PATH_UNINDEXED", new String[] {
+        ),
+        "FILTER_PATH_UNINDEXED", new SeeAlso(
             "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
             "Selective indexing"
-        }
+        )
     );
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
@@ -88,9 +98,15 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
 
             sb.append(String.format("| `%s`\n| %s\n| %s\na| %s\n", code, scope, title, desc));
 
-            if (ERROR_CODE_SEE_ALSO_MAP.containsKey(code)) {
-                String[] linkInfo = ERROR_CODE_SEE_ALSO_MAP.get(code);
-                sb.append(String.format("\nSee also %s[%s].\n", linkInfo[0], linkInfo[1]));
+            val seeAlso = ERROR_CODE_SEE_ALSO_MAP.get(code);
+            if (seeAlso != null) {
+                if (seeAlso.condition() != null) {
+                    sb.append(String.format("\nifdef::%s[]", seeAlso.condition()));
+                }
+                sb.append(String.format("\nSee also %s[%s].\n", seeAlso.xref(), seeAlso.text()));
+                if (seeAlso.condition() != null) {
+                    sb.append(String.format("endif::%s[]\n", seeAlso.condition()));
+                }
             }
             sb.append("\n");
         }
