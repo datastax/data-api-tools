@@ -15,7 +15,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
@@ -49,6 +51,8 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
     );
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
+    private static final Pattern LIST_ITEM_PATTERN = Pattern.compile("^\\s*([*-]|\\d+\\.|[a-z]\\.)\\s+\\S.*");
+    private static final Pattern ORDERED_ITEM_PATTERN = Pattern.compile("^\\s*\\d+\\.\\s+\\S.*");
 
     @Override
     @SneakyThrows
@@ -79,7 +83,8 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
             val code = entry.path("code").asString("");
             val scope = entry.hasNonNull("scope") ? entry.get("scope").asString() : "n/a";
             val title = escapePipe(entry.path("title").asString(""));
-            val desc = escapePipe(PLACEHOLDER_PATTERN.matcher(entry.path("body").asString("").split("\r?\n", 2)[0].trim()).replaceAll("**[$1]**"));
+            val body = toAsciiDoc(entry.path("body").asString(""));
+            val desc = escapePipe(PLACEHOLDER_PATTERN.matcher(body).replaceAll("**[$1]**"));
 
             sb.append(String.format("| `%s`\n| %s\n| %s\na| %s\n", code, scope, title, desc));
 
@@ -117,6 +122,97 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         } else {
             return Files.newInputStream(Path.of(input));
         }
+    }
+
+    private enum LineKind { TEXT, LIST, CODE }
+
+    /**
+     * AsciiDoc needs a blank line between a paragraph, a list, and a literal (indented) block,
+     * but the YAML bodies often omit them, so we insert them wherever the kind of line changes.
+     * <p>
+     * Once a numbered list starts, any other content is attached to the current item with a list
+     * continuation (+), and code is wrapped in a delimited literal block. Otherwise the block would
+     * end the list and the numbering would restart.
+     */
+    private String toAsciiDoc(String body) {
+        val lines = body.lines().map(String::stripTrailing).toList();
+        val out = new ArrayList<String>();
+        LineKind prevKind = null;
+        boolean inOrdered = false;
+
+        for (int i = 0; i < lines.size(); i++) {
+            val line = lines.get(i);
+
+            if (line.isBlank()) {
+                out.add("");
+                prevKind = null;
+                continue;
+            }
+
+            val kind = kindOf(lines, i);
+
+            if (ORDERED_ITEM_PATTERN.matcher(line).matches()) {
+                inOrdered = true;
+            }
+
+            if (inOrdered && kind == LineKind.CODE) {
+                var end = i;
+                while (end < lines.size() && !lines.get(end).isBlank() && kindOf(lines, end) == LineKind.CODE) {
+                    end++;
+                }
+                val block = lines.subList(i, end);
+                val indent = block.stream().mapToInt(l -> l.length() - l.stripLeading().length()).min().orElse(0);
+
+                attachToListItem(out);
+                out.add("....");
+                block.forEach(l -> out.add(l.substring(indent)));
+                out.add("....");
+
+                prevKind = LineKind.CODE;
+                i = end - 1;
+                continue;
+            }
+
+            if (inOrdered && kind == LineKind.TEXT && Character.isWhitespace(line.charAt(0))) {
+                attachToListItem(out);
+            } else if (prevKind != null && prevKind != kind) {
+                out.add("");
+            }
+
+            out.add((kind == LineKind.CODE) ? line : line.stripLeading());
+            prevKind = kind;
+        }
+
+        return String.join("\n", out).trim();
+    }
+
+    private void attachToListItem(List<String> out) {
+        while (!out.isEmpty() && out.getLast().isEmpty()) {
+            out.removeLast();
+        }
+        out.add("+");
+    }
+
+    private LineKind kindOf(List<String> lines, int i) {
+        val line = lines.get(i);
+
+        if (LIST_ITEM_PATTERN.matcher(line).matches()) {
+            return LineKind.LIST;
+        }
+
+        if (!Character.isWhitespace(line.charAt(0))) {
+            return LineKind.TEXT;
+        }
+
+        // An indented line that introduces a list is prose, not a literal block
+        if (line.endsWith(":")) {
+            for (int j = i + 1; j < lines.size(); j++) {
+                if (!lines.get(j).isBlank()) {
+                    return LIST_ITEM_PATTERN.matcher(lines.get(j)).matches() ? LineKind.TEXT : LineKind.CODE;
+                }
+            }
+        }
+        return LineKind.CODE;
     }
 
     private String escapePipe(String text) {
