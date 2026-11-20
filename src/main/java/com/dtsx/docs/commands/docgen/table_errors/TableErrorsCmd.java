@@ -51,15 +51,15 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         }
     }
 
-    private static final Map<String, SeeAlso> ERROR_CODE_SEE_ALSO_MAP = Map.of(
-        "DOCUMENT_REPLACE_DIFFERENT_DOCID", new SeeAlso(
+    private static final Map<String, List<SeeAlso>> ERROR_CODE_SEE_ALSO_MAP = Map.of(
+        "DOCUMENT_REPLACE_DIFFERENT_DOCID", List.of(new SeeAlso(
             "xref:api-reference:document-methods/replace-one.adoc",
             ""
-        ),
-        "FILTER_PATH_UNINDEXED", new SeeAlso(
+        )),
+        "FILTER_PATH_UNINDEXED", List.of(new SeeAlso(
             "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
             "Selective indexing"
-        )
+        ))
     );
 
     private static final String SNIPPET_PREFIX = "SNIPPET.";
@@ -104,15 +104,33 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
 
             sb.append(String.format("| `%s`\n| %s\n| %s\na| %s\n", code, scope, title, desc));
 
-            val seeAlso = ERROR_CODE_SEE_ALSO_MAP.get(code);
-            if (seeAlso != null) {
-                if (seeAlso.condition() != null) {
-                    sb.append(String.format("\nifdef::%s[]", seeAlso.condition()));
+            val seeAlsoList = ERROR_CODE_SEE_ALSO_MAP.get(code);
+            if (seeAlsoList != null && !seeAlsoList.isEmpty()) {
+                sb.append("\nSee also ");
+                for (int i = 0; i < seeAlsoList.size(); i++) {
+                    val seeAlso = seeAlsoList.get(i);
+                    val link = String.format("%s[%s]", seeAlso.xref(), seeAlso.text());
+                    if (seeAlso.condition() != null) {
+                        sb.append(String.format("ifdef::%s[", seeAlso.condition()));
+                    }
+                    if (seeAlsoList.size() == 1) {
+                        sb.append(link);
+                    } else if (seeAlsoList.size() == 2) {
+                        sb.append(link);
+                        if (i == 0) sb.append(" and ");
+                    } else {
+                        sb.append(link);
+                        if (i < seeAlsoList.size() - 2) {
+                            sb.append(", ");
+                        } else if (i == seeAlsoList.size() - 2) {
+                            sb.append(", and ");
+                        }
+                    }
+                    if (seeAlso.condition() != null) {
+                        sb.append("]");
+                    }
                 }
-                sb.append(String.format("\nSee also %s[%s].\n", seeAlso.xref(), seeAlso.text()));
-                if (seeAlso.condition() != null) {
-                    sb.append(String.format("endif::%s[]\n", seeAlso.condition()));
-                }
+                sb.append(".\n");
             }
             sb.append("\n");
         }
