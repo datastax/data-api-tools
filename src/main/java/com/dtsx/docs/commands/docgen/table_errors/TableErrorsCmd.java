@@ -51,14 +51,57 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         }
     }
 
-    private static final Map<String, List<SeeAlso>> ERROR_CODE_SEE_ALSO_MAP = Map.of(
-        "DOCUMENT_REPLACE_DIFFERENT_DOCID", List.of(new SeeAlso(
+    /**
+     * Error codes are only unique within a scope, so the see-also lookup is keyed on both.
+     */
+    private record ErrorKey(String scope, String code) {}
+
+    private static final Map<ErrorKey, List<SeeAlso>> ERROR_CODE_SEE_ALSO_MAP = Map.of(
+        new ErrorKey("DOCUMENT", "DOCUMENT_REPLACE_DIFFERENT_DOCID"), List.of(new SeeAlso(
             "xref:api-reference:document-methods/replace-one.adoc",
             ""
         )),
-        "FILTER_PATH_UNINDEXED", List.of(new SeeAlso(
+        new ErrorKey("FILTER", "FILTER_PATH_UNINDEXED"), List.of(new SeeAlso(
             "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
             "Selective indexing"
+        )),
+        new ErrorKey("DOCUMENT", "UNKNOWN_TABLE_COLUMNS"), List.of(new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "test 1"
+        )),
+        new ErrorKey("FILTER", "UNKNOWN_TABLE_COLUMNS"), List.of(new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "test 2"
+        )),
+        new ErrorKey("FILTER", "FILTER_UNSUPPORTED_DATA_TYPE"), List.of(new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "aaa"
+        ),new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "bbb"
+        )),
+        new ErrorKey("FILTER", "FILTER_MULTIPLE_ID_FILTER"), List.of(new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "ccc"
+        ),new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "ddd"
+        ),new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "eee"
+        )),
+        new ErrorKey("FILTER", "FILTER_INVALID_EXPRESSION"), List.of(new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "ccc"
+        ),new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "ddd"
+        ),new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "eee"
+        ),new SeeAlso(
+            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
+            "fff"
         ))
     );
 
@@ -97,14 +140,15 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
 
         for (val entry : errors) {
             val code = entry.path("code").asString("");
-            val scope = entry.hasNonNull("scope") ? entry.get("scope").asString() : "n/a";
+            val rawScope = entry.hasNonNull("scope") ? entry.get("scope").asString() : null;
+            val scope = (rawScope != null) ? rawScope : "n/a";
             val title = escapePipe(entry.path("title").asString(""));
             val body = toAsciiDoc(expandSnippets(entry.path("body").asString(""), snippets));
             val desc = escapePipe(PLACEHOLDER_PATTERN.matcher(body).replaceAll("**[$1]**"));
 
             sb.append(String.format("| `%s`\n| %s\n| %s\na| %s\n", code, scope, title, desc));
 
-            val seeAlsoList = ERROR_CODE_SEE_ALSO_MAP.get(code);
+            val seeAlsoList = ERROR_CODE_SEE_ALSO_MAP.get(new ErrorKey(rawScope, code));
             if (seeAlsoList != null && !seeAlsoList.isEmpty()) {
                 sb.append("\nSee also ");
                 for (int i = 0; i < seeAlsoList.size(); i++) {
