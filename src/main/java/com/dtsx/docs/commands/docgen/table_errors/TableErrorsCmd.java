@@ -17,8 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
@@ -60,6 +62,7 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         )
     );
 
+    private static final String SNIPPET_PREFIX = "SNIPPET.";
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
     private static final Pattern LIST_ITEM_PATTERN = Pattern.compile("^\\s*([*-]|\\d+\\.|[a-z]\\.)\\s+\\S.*");
     private static final Pattern ORDERED_ITEM_PATTERN = Pattern.compile("^\\s*\\d+\\.\\s+\\S.*");
@@ -79,6 +82,9 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
             root = mapper.readTree(is);
         }
 
+        val snippets = new HashMap<String, String>();
+        root.path("snippets").forEach(s -> snippets.put(SNIPPET_PREFIX + s.path("name").asString(""), s.path("body").asString("")));
+
         val errors = root.findValues("request-errors").stream()
             .flatMap(node -> StreamSupport.stream(node.spliterator(), false))
             .sorted(Comparator.comparing(n -> n.path("code").asString("")))
@@ -93,7 +99,7 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
             val code = entry.path("code").asString("");
             val scope = entry.hasNonNull("scope") ? entry.get("scope").asString() : "n/a";
             val title = escapePipe(entry.path("title").asString(""));
-            val body = toAsciiDoc(entry.path("body").asString(""));
+            val body = toAsciiDoc(expandSnippets(entry.path("body").asString(""), snippets));
             val desc = escapePipe(PLACEHOLDER_PATTERN.matcher(body).replaceAll("**[$1]**"));
 
             sb.append(String.format("| `%s`\n| %s\n| %s\na| %s\n", code, scope, title, desc));
@@ -130,6 +136,17 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         CliLogger.println(false, "@|green ✓|@ Written " + errors.size() + " rows to " + output);
 
         return 0;
+    }
+
+    /**
+     * Replaces {@code ${SNIPPET.NAME}} placeholders with the snippet's body. Unknown snippets are left as-is
+     * so they still render as a bold placeholder.
+     */
+    private String expandSnippets(String body, Map<String, String> snippets) {
+        return PLACEHOLDER_PATTERN.matcher(body).replaceAll(m -> {
+            val snippet = snippets.get(m.group(1));
+            return Matcher.quoteReplacement(snippet != null ? snippet : m.group());
+        });
     }
 
     private InputStream mkInputStream(String input) throws Exception {
