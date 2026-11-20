@@ -64,44 +64,6 @@ public class TableErrorsCmd extends BaseCmd<TableErrorsCtx> {
         new ErrorKey("FILTER", "FILTER_PATH_UNINDEXED"), List.of(new SeeAlso(
             "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
             "Selective indexing"
-        )),
-        new ErrorKey("DOCUMENT", "UNKNOWN_TABLE_COLUMNS"), List.of(new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "test 1"
-        )),
-        new ErrorKey("FILTER", "UNKNOWN_TABLE_COLUMNS"), List.of(new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "test 2"
-        )),
-        new ErrorKey("FILTER", "FILTER_UNSUPPORTED_DATA_TYPE"), List.of(new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "aaa"
-        ),new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "bbb"
-        )),
-        new ErrorKey("FILTER", "FILTER_MULTIPLE_ID_FILTER"), List.of(new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "ccc"
-        ),new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "ddd"
-        ),new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "eee"
-        )),
-        new ErrorKey("FILTER", "FILTER_INVALID_EXPRESSION"), List.of(new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "ccc"
-        ),new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "ddd"
-        ),new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "eee"
-        ),new SeeAlso(
-            "xref:api-reference:collection-indexes.adoc#configure-indexing-for-collections",
-            "fff"
         ))
     );
 
